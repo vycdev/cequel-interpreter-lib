@@ -23,10 +23,10 @@ namespace Interpreter
             if (language != null)
                 _language = language;
 
-            while(GetNextToken().Type != Tokens.END_OF_FILE)
+            do
             {
                 tokens.Add(GetNextToken());
-            }
+            } while (tokens.Last().Type != Tokens.END_OF_FILE);
         }
 
         private bool Advance()
