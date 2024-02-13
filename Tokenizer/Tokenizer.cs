@@ -273,13 +273,15 @@ namespace Interpreter_lib.Tokenizer
                         bool continueAccumulation = false;
                         foreach (PropertyInfo property in properties)
                         {
-                            var values = property.GetValue(_language).ToString();
+                            var propertyValue = property.GetValue(_language)?.ToString() ?? string.Empty;
                          
-                            if(values == _accumulator)
+                            if(propertyValue == _accumulator)
+                            {
                                 break;
+                            }
 
-                            if (values.Length > 1)
-                                foreach (string word in values.Split(" "))
+                            if (propertyValue.Split(" ").Length > 1)
+                                foreach (string word in propertyValue.Split(" "))
                                     if(_accumulator.Contains(word))
                                     {
                                         continueAccumulation = true;
@@ -303,7 +305,19 @@ namespace Interpreter_lib.Tokenizer
 
                         Advance(-1);
 
-                        if (isNumber(_accumulator))
+                        foreach (PropertyInfo property in properties)
+                        {
+                            var propertyValue = property.GetValue(_language)?.ToString() ?? string.Empty;
+
+                            if (propertyValue == _accumulator && propertyValue.Split(" ").Length > 1)
+                            {
+                                for (int i = 1; i < propertyValue.Split(" ").Length; i++)
+                                    Tokens.RemoveAt(Tokens.Count() - i);
+                                break;
+                            }
+                        }
+
+                            if (isNumber(_accumulator))
                             return new Token(Interpreter_lib.Tokenizer.Tokens.NUMBER, _accumulator);
 
 
