@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,6 +27,7 @@ namespace Interpreter_lib.Tokenizer
             do
             {
                 Tokens.Add(GetNextToken());
+                Advance();
             } while (Tokens.Last().Type != Interpreter_lib.Tokenizer.Tokens.END_OF_FILE);
         }
 
@@ -86,7 +88,7 @@ namespace Interpreter_lib.Tokenizer
 
         private Token GetNextToken()
         {
-            while (Advance())
+            do
             {
                 switch (_currentChar)
                 {
@@ -136,12 +138,22 @@ namespace Interpreter_lib.Tokenizer
                     case ',':
                         return new Token(Interpreter_lib.Tokenizer.Tokens.COMMA, _currentChar.ToString());
 
+                    case '\r':
+                        if(Peek() == '\n')
+                        {
+                            Advance();
+                            return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_LINE, "\\r\\n");
+                        }
+                        return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_LINE, "\\r");
+                    
                     case '\n':
+                        return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_LINE, "\\n");
+
                     case ';':
                         return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_LINE, _currentChar.ToString());
 
                     case '\0':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_FILE, string.Empty);
+                        return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_FILE, "\\0");
 
                     case '=':
                         if (Peek() == '=')
@@ -222,110 +234,113 @@ namespace Interpreter_lib.Tokenizer
                         if (PeekSequence("    "))
                         {
                             Advance(3);
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.TAB, "    ");
+                            return new Token(Interpreter_lib.Tokenizer.Tokens.TAB, "\\t");
                         }
 
                         continue;
 
                     case '\t':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.TAB, "\t");
+                        return new Token(Interpreter_lib.Tokenizer.Tokens.TAB, "\\t");
 
                     case '"':
-                        _accumulator += _currentChar;
+                        _accumulator = string.Empty;
 
-                        while (Peek() != '"' && _currentChar != '\\')
+                        do
                         {
                             Advance();
                             _accumulator += _currentChar;
-                        }
-
+                        } while (!"\"".Contains(Peek()) || 
+                                ( 
+                                    _currentChar.ToString() + Peek() == "\\\"" || 
+                                    Peek().ToString() + Peek(1) == "\\\"" || 
+                                    Peek(-1) + _currentChar.ToString() == "\\\""
+                                )
+                        );
+                        
+                        Advance();
+                        
                         return new Token(Interpreter_lib.Tokenizer.Tokens.STRING, _accumulator);
 
                     default:
-                        while (Peek() != ' ' && Peek() != '\n' && Peek() != '\0')
+                        PropertyInfo[] properties = _language.GetType().GetProperties();
+
+                        bool continueAccumulation = false;
+                        foreach (PropertyInfo property in properties)
+                        {
+                            var values = property.GetValue(_language).ToString();
+                         
+                            if(values == _accumulator)
+                                break;
+
+                            if (values.Length > 1)
+                                foreach (string word in values.Split(" "))
+                                    if(_accumulator.Contains(word))
+                                    {
+                                        continueAccumulation = true;
+                                        break;
+                                    }
+
+                            if(continueAccumulation)
+                                break;
+                        }
+
+                        if (!continueAccumulation)
+                            _accumulator = string.Empty;
+                        else
+                            _accumulator += " ";
+
+                        do
                         {
                             _accumulator += _currentChar;
                             Advance();
-                        }
+                        } while (!" \n\0\r".Contains(_currentChar) && (char.IsLetterOrDigit(_currentChar) || ".".Contains(_currentChar)));
+
+                        Advance(-1);
 
                         if (isNumber(_accumulator))
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.NUMBER, _accumulator);
-                        }
+
+
+                        // TODO: associate the enums to the properties so you can do a foreach instead of this. 
 
                         if (_accumulator == _language.READ)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.READ, _accumulator);
-                        }
 
                         if (_accumulator == _language.WRITE)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.WRITE, _accumulator);
-                        }
 
                         if (_accumulator == _language.IF)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.IF, _accumulator);
-                        }
 
                         if (_accumulator == _language.THEN)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.THEN, _accumulator);
-                        }
 
                         if (_accumulator == _language.ELSE)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.ELSE, _accumulator);
-                        }
 
                         if (_accumulator == _language.WHILE)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.WHILE, _accumulator);
-                        }
 
                         if (_accumulator == _language.UNTIL)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.UNTIL, _accumulator);
-                        }
 
                         if (_accumulator == _language.DO)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.DO, _accumulator);
-                        }
 
                         if (_accumulator == _language.FOR)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.FOR, _accumulator);
-                        }
 
-                        if(_accumulator == _language.REPEAT)
-                        {
-                            _accumulator = string.Empty;
+                        if (_accumulator == _language.REPEAT)
                             return new Token(Interpreter_lib.Tokenizer.Tokens.REPEAT, _accumulator);
-                        }
 
                         if (_accumulator.Length > 0)
-                        {
-                            _accumulator = string.Empty;
                             return new Token(Interpreter_lib.Tokenizer.Tokens.IDENTIFIER, _accumulator);
-                        }
 
                         break;
                 }
-            }
+            } while (Advance());
 
-            return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_FILE, string.Empty);
+            return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_FILE, "\\0");
         }
-
     }
 }
