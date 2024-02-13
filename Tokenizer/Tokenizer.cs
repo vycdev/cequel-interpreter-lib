@@ -308,6 +308,12 @@ namespace Interpreter_lib.Tokenizer
                             return new Token(Interpreter_lib.Tokenizer.Tokens.FOR, _accumulator);
                         }
 
+                        if(_accumulator == _language.REPEAT)
+                        {
+                            _accumulator = string.Empty;
+                            return new Token(Interpreter_lib.Tokenizer.Tokens.REPEAT, _accumulator);
+                        }
+
                         if (_accumulator.Length > 0)
                         {
                             _accumulator = string.Empty;

@@ -23,7 +23,7 @@ namespace Interpreter_lib.Tokenizer
         COMMA, // comma
 
         IF, THEN, ELSE, // conditional operators
-        WHILE, UNTIL, DO, // simple loop operators
+        WHILE, DO, REPEAT, UNTIL, // simple loop operators
         FOR, // complex loop operator
 
         END_OF_LINE, // end of line, (semicolon or end of line are both valid)
@@ -38,8 +38,9 @@ namespace Interpreter_lib.Tokenizer
         public string THEN { get; set; } = "then";
         public string ELSE { get; set; } = "else";
         public string WHILE { get; set; } = "while";
-        public string UNTIL { get; set; } = "until";
         public string DO { get; set; } = "do";
+        public string REPEAT { get; set; } = "repeat";
+        public string UNTIL { get; set; } = "until";
         public string FOR { get; set; } = "for";
     }
 
