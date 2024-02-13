@@ -1,4 +1,4 @@
-﻿namespace Interpreter
+﻿namespace Interpreter_lib
 {
     public class Interpreter
     {
