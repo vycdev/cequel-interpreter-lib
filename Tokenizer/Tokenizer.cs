@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Interpreter
+namespace Interpreter_lib.Tokenizer
 {
-    internal class Tokenizer
+    public class Tokenizer
     {
         private string _source;
         private int _position;
@@ -92,19 +92,19 @@ namespace Interpreter
                 {
                     case '+':
                         return new Token(Tokens.PLUS, _currentChar.ToString());
-                    
+
                     case '-':
                         return new Token(Tokens.MINUS, _currentChar.ToString());
-                    
+
                     case '*':
                         if (Peek() == '*')
                         {
                             Advance();
                             return new Token(Tokens.POWER, "**");
                         }
-                        
+
                         return new Token(Tokens.MULTIPLY, _currentChar.ToString());
-                    
+
                     case '/':
                         if (Peek() == '/')
                         {
@@ -112,119 +112,119 @@ namespace Interpreter
                                 Advance();
                             continue;
                         }
-                    
+
                         return new Token(Tokens.DIVIDE, _currentChar.ToString());
-                    
+
                     case '%':
                         return new Token(Tokens.MODULUS, _currentChar.ToString());
-                    
+
                     case '^':
                         return new Token(Tokens.BITWISE_XOR, _currentChar.ToString());
-                    
+
                     case '[':
                         return new Token(Tokens.LEFT_SQUARE_BRACKET, _currentChar.ToString());
-                    
+
                     case ']':
                         return new Token(Tokens.RIGHT_SQUARE_BRACKET, _currentChar.ToString());
-                    
+
                     case '(':
                         return new Token(Tokens.LEFT_PARENTHESIS, _currentChar.ToString());
-                    
+
                     case ')':
                         return new Token(Tokens.RIGHT_PARENTHESIS, _currentChar.ToString());
-                    
+
                     case ',':
                         return new Token(Tokens.COMMA, _currentChar.ToString());
-                    
+
                     case '\n':
                     case ';':
                         return new Token(Tokens.END_OF_LINE, _currentChar.ToString());
-                    
+
                     case '\0':
                         return new Token(Tokens.END_OF_FILE, string.Empty);
-                    
+
                     case '=':
                         if (Peek() == '=')
                         {
                             Advance();
                             return new Token(Tokens.EQUAL, "==");
                         }
-                    
+
                         return new Token(Tokens.ASSIGN, "=");
-                    
+
                     case '!':
                         if (Peek() == '=')
                         {
                             Advance();
                             return new Token(Tokens.NOT_EQUAL, "!=");
                         }
-                        
+
                         return new Token(Tokens.NOT, "!");
-                    
+
                     case '<':
                         if (Peek() == '=')
                         {
                             Advance();
                             return new Token(Tokens.LESS_THAN_EQUAL, "<=");
                         }
-                        
+
                         if (Peek() == '-')
                         {
                             Advance();
                             return new Token(Tokens.ASSIGN, "<-");
                         }
-                    
+
                         if (Peek() == '<')
                         {
                             Advance();
                             return new Token(Tokens.BITWISE_LEFT_SHIFT, "<<");
                         }
-                        
+
                         return new Token(Tokens.LESS_THAN, "<");
-                    
+
                     case '>':
                         if (Peek() == '=')
                         {
                             Advance();
                             return new Token(Tokens.GREATER_THAN_EQUAL, ">=");
                         }
-                        
+
                         if (Peek() == '>')
                         {
                             Advance();
                             return new Token(Tokens.BITWISE_RIGHT_SHIFT, ">>");
                         }
-                        
+
                         return new Token(Tokens.GREATHER_THAN, ">");
-                    
+
                     case '&':
                         if (Peek() == '&')
                         {
                             Advance();
                             return new Token(Tokens.AND, "&&");
                         }
-                        
+
                         return new Token(Tokens.BITWISE_AND, "&");
-                    
+
                     case '|':
                         if (Peek() == '|')
                         {
                             Advance();
                             return new Token(Tokens.OR, "||");
                         }
-                        
+
                         return new Token(Tokens.BITWISE_OR, "|");
-                    
+
                     case '~':
                         return new Token(Tokens.BITWISE_NOT, "~");
-                    
+
                     case ' ':
                         if (PeekSequence("    "))
                         {
                             Advance(3);
                             return new Token(Tokens.TAB, "    ");
                         }
-                        
+
                         continue;
 
                     case '\t':

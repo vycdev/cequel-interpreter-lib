@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Interpreter
+namespace Interpreter_lib.Tokenizer
 {
-    internal enum Tokens
+    public enum Tokens
     {
         PLUS, MINUS, MULTIPLY, DIVIDE, MODULUS, POWER, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET, // arithmetic operators
         LEFT_PARENTHESIS, RIGHT_PARENTHESIS, // grouping operators
@@ -30,7 +30,7 @@ namespace Interpreter
         END_OF_FILE, // end of file
         TAB, // tab
     }
-    internal class TokensLanguage
+    public class TokensLanguage
     {
         public string READ { get; set; } = "read";
         public string WRITE { get; set; } = "write";
@@ -43,7 +43,7 @@ namespace Interpreter
         public string FOR { get; set; } = "for";
     }
 
-    internal class Token
+    public class Token
     {
         public Tokens Type { get; private set; }
         public string Value { get; private set; }
