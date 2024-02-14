@@ -243,6 +243,23 @@ namespace Interpreter_lib.Tokenizer
                         return new Token(Interpreter_lib.Tokenizer.Tokens.TAB, "\\t");
 
                     case '\'':
+                        _accumulator = string.Empty;
+
+                        do
+                        {
+                            Advance();
+                            _accumulator += _currentChar;
+                        } while (!"'".Contains(Peek()) ||
+                                (
+                                    _currentChar.ToString() + Peek() == "\\'" ||
+                                    Peek().ToString() + Peek(1) == "\\'" ||
+                                    Peek(-1) + _currentChar.ToString() == "\\'"
+                                )
+                        );
+
+                        Advance();
+
+                        return new Token(Interpreter_lib.Tokenizer.Tokens.STRING, _accumulator);
                     case '"':
                         _accumulator = string.Empty;
 
@@ -250,16 +267,11 @@ namespace Interpreter_lib.Tokenizer
                         {
                             Advance();
                             _accumulator += _currentChar;
-                        } while (!"\"'".Contains(Peek()) || 
+                        } while (!"\"".Contains(Peek()) || 
                                 ( 
                                     _currentChar.ToString() + Peek() == "\\\"" || 
                                     Peek().ToString() + Peek(1) == "\\\"" || 
                                     Peek(-1) + _currentChar.ToString() == "\\\""
-                                ) ||
-                                (
-                                    _currentChar.ToString() + Peek() == "\\'" ||
-                                    Peek().ToString() + Peek(1) == "\\'" ||
-                                    Peek(-1) + _currentChar.ToString() == "\\'"
                                 )
                         );
                         
