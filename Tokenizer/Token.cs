@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Tokenizer
 {
-    public enum Tokens
+    public enum EToken
     {
         PLUS, MINUS, MULTIPLY, DIVIDE, MODULUS, POWER, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET, // arithmetic operators
         LEFT_PARENTHESIS, RIGHT_PARENTHESIS, // grouping operators
@@ -46,10 +46,10 @@ namespace Interpreter_lib.Tokenizer
 
     public class Token
     {
-        public Tokens Type { get; private set; }
+        public EToken Type { get; private set; }
         public string Value { get; private set; }
 
-        public Token(Tokens type, string value)
+        public Token(EToken type, string value)
         {
             Type = type;
             Value = value;

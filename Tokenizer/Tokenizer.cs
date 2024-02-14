@@ -28,7 +28,7 @@ namespace Interpreter_lib.Tokenizer
             {
                 Tokens.Add(GetNextToken());
                 Advance();
-            } while (Tokens.Last().Type != Interpreter_lib.Tokenizer.Tokens.END_OF_FILE);
+            } while (Tokens.Last().Type != Interpreter_lib.Tokenizer.EToken.END_OF_FILE);
         }
 
         private bool Advance()
@@ -93,19 +93,19 @@ namespace Interpreter_lib.Tokenizer
                 switch (_currentChar)
                 {
                     case '+':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.PLUS, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.PLUS, _currentChar.ToString());
 
                     case '-':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.MINUS, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.MINUS, _currentChar.ToString());
 
                     case '*':
                         if (Peek() == '*')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.POWER, "**");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.POWER, "**");
                         }
 
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.MULTIPLY, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.MULTIPLY, _currentChar.ToString());
 
                     case '/':
                         if (Peek() == '/')
@@ -115,132 +115,132 @@ namespace Interpreter_lib.Tokenizer
                             continue;
                         }
 
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.DIVIDE, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.DIVIDE, _currentChar.ToString());
 
                     case '%':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.MODULUS, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.MODULUS, _currentChar.ToString());
 
                     case '^':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.BITWISE_XOR, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.BITWISE_XOR, _currentChar.ToString());
 
                     case '[':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.LEFT_SQUARE_BRACKET, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.LEFT_SQUARE_BRACKET, _currentChar.ToString());
 
                     case ']':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.RIGHT_SQUARE_BRACKET, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.RIGHT_SQUARE_BRACKET, _currentChar.ToString());
 
                     case '(':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.LEFT_PARENTHESIS, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.LEFT_PARENTHESIS, _currentChar.ToString());
 
                     case ')':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.RIGHT_PARENTHESIS, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.RIGHT_PARENTHESIS, _currentChar.ToString());
 
                     case ',':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.COMMA, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.COMMA, _currentChar.ToString());
 
                     case '\r':
                         if(Peek() == '\n')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_LINE, "\\r\\n");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.END_OF_LINE, "\\r\\n");
                         }
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_LINE, "\\r");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.END_OF_LINE, "\\r");
                     
                     case '\n':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_LINE, "\\n");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.END_OF_LINE, "\\n");
 
                     case ';':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_LINE, _currentChar.ToString());
+                        return new Token(Interpreter_lib.Tokenizer.EToken.END_OF_LINE, _currentChar.ToString());
 
                     case '\0':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_FILE, "\\0");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.END_OF_FILE, "\\0");
 
                     case '=':
                         if (Peek() == '=')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.EQUAL, "==");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.EQUAL, "==");
                         }
 
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.ASSIGN, "=");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.ASSIGN, "=");
 
                     case '!':
                         if (Peek() == '=')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.NOT_EQUAL, "!=");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.NOT_EQUAL, "!=");
                         }
 
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.NOT, "!");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.NOT, "!");
 
                     case '<':
                         if (Peek() == '=')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.LESS_THAN_EQUAL, "<=");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.LESS_THAN_EQUAL, "<=");
                         }
 
                         if (Peek() == '-')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.ASSIGN, "<-");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.ASSIGN, "<-");
                         }
 
                         if (Peek() == '<')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.BITWISE_LEFT_SHIFT, "<<");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.BITWISE_LEFT_SHIFT, "<<");
                         }
 
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.LESS_THAN, "<");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.LESS_THAN, "<");
 
                     case '>':
                         if (Peek() == '=')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.GREATER_THAN_EQUAL, ">=");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.GREATER_THAN_EQUAL, ">=");
                         }
 
                         if (Peek() == '>')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.BITWISE_RIGHT_SHIFT, ">>");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.BITWISE_RIGHT_SHIFT, ">>");
                         }
 
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.GREATHER_THAN, ">");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.GREATHER_THAN, ">");
 
                     case '&':
                         if (Peek() == '&')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.AND, "&&");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.AND, "&&");
                         }
 
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.BITWISE_AND, "&");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.BITWISE_AND, "&");
 
                     case '|':
                         if (Peek() == '|')
                         {
                             Advance();
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.OR, "||");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.OR, "||");
                         }
 
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.BITWISE_OR, "|");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.BITWISE_OR, "|");
 
                     case '~':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.BITWISE_NOT, "~");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.BITWISE_NOT, "~");
 
                     case ' ':
                         if (PeekSequence("    "))
                         {
                             Advance(3);
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.TAB, "\\t");
+                            return new Token(Interpreter_lib.Tokenizer.EToken.TAB, "\\t");
                         }
 
                         continue;
 
                     case '\t':
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.TAB, "\\t");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.TAB, "\\t");
 
                     case '\'':
                         _accumulator = string.Empty;
@@ -259,7 +259,7 @@ namespace Interpreter_lib.Tokenizer
 
                         Advance();
 
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.STRING, _accumulator);
+                        return new Token(Interpreter_lib.Tokenizer.EToken.STRING, _accumulator);
                     case '"':
                         _accumulator = string.Empty;
 
@@ -277,7 +277,7 @@ namespace Interpreter_lib.Tokenizer
                         
                         Advance();
                         
-                        return new Token(Interpreter_lib.Tokenizer.Tokens.STRING, _accumulator);
+                        return new Token(Interpreter_lib.Tokenizer.EToken.STRING, _accumulator);
 
                     default:
                         PropertyInfo[] properties = _language.GetType().GetProperties();
@@ -330,49 +330,49 @@ namespace Interpreter_lib.Tokenizer
                         }
 
                             if (isNumber(_accumulator))
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.NUMBER, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.NUMBER, _accumulator);
 
 
                         // TODO: associate the enums to the properties so you can do a foreach instead of this. 
 
                         if (_accumulator == _language.READ)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.READ, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.READ, _accumulator);
 
                         if (_accumulator == _language.WRITE)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.WRITE, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.WRITE, _accumulator);
 
                         if (_accumulator == _language.IF)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.IF, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.IF, _accumulator);
 
                         if (_accumulator == _language.THEN)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.THEN, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.THEN, _accumulator);
 
                         if (_accumulator == _language.ELSE)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.ELSE, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.ELSE, _accumulator);
 
                         if (_accumulator == _language.WHILE)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.WHILE, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.WHILE, _accumulator);
 
                         if (_accumulator == _language.UNTIL)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.UNTIL, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.UNTIL, _accumulator);
 
                         if (_accumulator == _language.DO)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.DO, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.DO, _accumulator);
 
                         if (_accumulator == _language.FOR)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.FOR, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.FOR, _accumulator);
 
                         if (_accumulator == _language.REPEAT)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.REPEAT, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.REPEAT, _accumulator);
 
                         if (_accumulator.Length > 0)
-                            return new Token(Interpreter_lib.Tokenizer.Tokens.IDENTIFIER, _accumulator);
+                            return new Token(Interpreter_lib.Tokenizer.EToken.IDENTIFIER, _accumulator);
 
                         break;
                 }
             } while (Advance());
 
-            return new Token(Interpreter_lib.Tokenizer.Tokens.END_OF_FILE, "\\0");
+            return new Token(Interpreter_lib.Tokenizer.EToken.END_OF_FILE, "\\0");
         }
     }
 }
