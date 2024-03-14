@@ -17,7 +17,7 @@ namespace Interpreter_lib.Parser
         private List<Token> _tokens = new();
         private Node _tree = new();
 
-        private bool _isMatched = false;
+        private bool _isMatched = true;
 
         public Rule(Action<IRuleConfiguration> definition)
         {
@@ -54,9 +54,10 @@ namespace Interpreter_lib.Parser
             if (_tokens[_currentTokenIndex].Type == token)
             {
                 _currentTokenIndex++;
-                _isMatched = true;
-                return this; 
+                return this;
             }
+            else
+                _isMatched = false; 
 
             // TODO: If I dont match the first token then I want to skip the rule without throwing an exception. 
 
