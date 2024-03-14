@@ -63,11 +63,11 @@ namespace Interpreter_lib.Parser
         }
 
         // Match the first rule in the sequence
-        IRuleRuleConfiguration IRuleConfiguration.WithR(Action<IRuleConfiguration> configuration)
+        IRuleRuleConfiguration IRuleConfiguration.WithR(Action<IRuleConfiguration> definition)
         {
             _isHoisted = false;
             _frequencyMethodsPassed = 0;
-            configuration(this); 
+            definition(this); 
 
             return this; 
         }
@@ -83,10 +83,10 @@ namespace Interpreter_lib.Parser
             return this;
         }
 
-        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(Action<IRuleConfiguration> configuration)
+        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(Action<IRuleConfiguration> definition)
         {
             _isHoisted = false;
-            configuration(this);
+            definition(this);
 
             return this; 
         }
