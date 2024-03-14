@@ -10,6 +10,8 @@ namespace Interpreter_lib.Parser
     internal class Rule : IRuleConfiguration, IRuleContinuationConfiguration, IRuleFrequencyConfiguration, IRuleTokenConfiguration, IRuleRuleConfiguration
     {
         private int _currentTokenIndex = 0;
+        private EToken _currentTokenToMatch; 
+        
         private bool _isHoisted = false;
         private bool _isExcluded = false;
 
@@ -18,6 +20,9 @@ namespace Interpreter_lib.Parser
         private Node _tree = new();
 
         private bool _isMatched = false;
+        private int _frequencyMethodsPassed = 0; 
+
+        // TODO: More information about the exception (give the token to the exception, better message, etc.)
 
         public Rule(Action<IRuleConfiguration> definition)
         {
@@ -51,14 +56,9 @@ namespace Interpreter_lib.Parser
         // Match the first token in the sequence
         IRuleTokenConfiguration IRuleConfiguration.WithT(EToken token)
         {
-            if (_tokens[_currentTokenIndex].Type == token)
-            {
-                _currentTokenIndex++;
-                _isMatched = true;
-                return this; 
-            }
-
-            // TODO: If I dont match the first token then I want to skip the rule without throwing an exception. 
+            _isExcluded = false;
+            _frequencyMethodsPassed = 0;
+            _currentTokenToMatch = token;
 
             return this; 
         }
@@ -66,6 +66,8 @@ namespace Interpreter_lib.Parser
         // Match the first rule in the sequence
         IRuleRuleConfiguration IRuleConfiguration.WithR(Action<IRuleConfiguration> configuration)
         {
+            _isHoisted = false;
+            _frequencyMethodsPassed = 0;
             configuration(this); 
 
             return this; 
@@ -74,15 +76,22 @@ namespace Interpreter_lib.Parser
         #endregion
 
         #region THEN
-        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(Action<IRuleConfiguration> configuration)
-        {
-            throw new NotImplementedException();
-        }
-
         IRuleTokenConfiguration IRuleContinuationConfiguration.ThenT(EToken token)
         {
-            throw new NotImplementedException();
+            _isExcluded = false; 
+            _currentTokenToMatch = token;
+
+            return this;
         }
+
+        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(Action<IRuleConfiguration> configuration)
+        {
+            _isHoisted = false;
+            configuration(this);
+
+            return this; 
+        }
+
 
         #endregion
 
@@ -91,25 +100,78 @@ namespace Interpreter_lib.Parser
         // Match exactly once
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.Once()
         {
-            throw new NotImplementedException();
+            if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+            {
+                _currentTokenIndex++;
+                _frequencyMethodsPassed++;
+
+                // TODO: Add the token to the tree
+
+                return this; 
+            }
+
+
+            _isMatched = false; 
+            if(_frequencyMethodsPassed > 0)
+                throw new ParsingException("Token not matched.");
+            
+            return this; 
         }
 
         // Match at least once
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtLeastOnce()
         {
-            throw new NotImplementedException();
+            bool ok = false;
+            while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+            {
+                _currentTokenToMatch++;
+                // TODO: Add the token to the tree
+                
+                ok = true;
+            }
+
+            _isMatched = ok; 
+            if(_frequencyMethodsPassed > 0 && !_isMatched)
+                throw new ParsingException("Token matched less than once.");
+            
+
+            _frequencyMethodsPassed++;
+            return this; 
         }
 
         // Match zero or one time at most
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtMostOnce()
         {
-            throw new NotImplementedException();
+            if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+            {
+                _currentTokenToMatch++;
+                // TODO: Add the token to the tree  
+
+                if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+                {
+                    _isMatched = false;
+                    if (_frequencyMethodsPassed > 0)
+                        throw new ParsingException("Token matched more than once.");
+                }
+            }
+
+
+            _frequencyMethodsPassed++;
+            return this; 
         }
 
         // Match zero or more times
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.ZeroOrMore()
         {
-            throw new NotImplementedException();
+            while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+            {
+                _currentTokenToMatch++;
+
+                // TODO: Add the token to the tree
+            }
+
+            _frequencyMethodsPassed++;
+            return this; 
         }
 
         #endregion
