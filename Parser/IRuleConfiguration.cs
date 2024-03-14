@@ -21,8 +21,8 @@ namespace Interpreter_lib.Parser
         IRuleTokenConfiguration ThenT(EToken token);
         IRuleRuleConfiguration ThenR(Action<IRuleConfiguration> configuration);
 
-        IRuleTokenConfiguration GotoT(EToken token);
-        IRuleRuleConfiguration GotoR(Action<IRuleConfiguration> configuration);
+        // IRuleTokenConfiguration GotoT(EToken token);
+        // IRuleRuleConfiguration GotoR(Action<IRuleConfiguration> configuration);
     }
 
     public interface IRuleFrequencyConfiguration
@@ -40,7 +40,7 @@ namespace Interpreter_lib.Parser
 
     public interface IRuleRuleConfiguration : IRuleFrequencyConfiguration
     {
-        IRuleTokenConfiguration Hoist();
+        IRuleRuleConfiguration Hoist();
     }
 
 
