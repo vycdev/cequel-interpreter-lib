@@ -19,7 +19,6 @@ namespace Interpreter_lib.Parser
         private List<Token> _tokens = new();
         private Node _tree = new();
 
-        private bool _isMatched = false;
         private int _frequencyMethodsPassed = 0; 
 
         // TODO: More information about the exception (give the token to the exception, better message, etc.)
@@ -109,8 +108,6 @@ namespace Interpreter_lib.Parser
                 return this; 
             }
 
-
-            _isMatched = false; 
             if(_frequencyMethodsPassed > 0)
                 throw new ParsingException("Token not matched.");
             
@@ -129,8 +126,7 @@ namespace Interpreter_lib.Parser
                 ok = true;
             }
 
-            _isMatched = ok; 
-            if(_frequencyMethodsPassed > 0 && !_isMatched)
+            if(_frequencyMethodsPassed > 0 && !ok)
                 throw new ParsingException("Token matched less than once.");
             
 
@@ -146,12 +142,8 @@ namespace Interpreter_lib.Parser
                 _currentTokenToMatch++;
                 // TODO: Add the token to the tree  
 
-                if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
-                {
-                    _isMatched = false;
-                    if (_frequencyMethodsPassed > 0)
-                        throw new ParsingException("Token matched more than once.");
-                }
+                if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch && _frequencyMethodsPassed > 0)
+                    throw new ParsingException("Token matched more than once.");
             }
 
 
