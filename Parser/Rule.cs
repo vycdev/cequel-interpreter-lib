@@ -92,7 +92,6 @@ namespace Interpreter_lib.Parser
             return this; 
         }
 
-
         #endregion
 
         #region FREQUENCY
