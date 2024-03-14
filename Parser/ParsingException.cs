@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Interpreter_lib.Tokenizer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -9,6 +10,8 @@ namespace Interpreter_lib.Parser
 {
     internal class ParsingException : Exception
     {
+        public Token? Token { get; set; }
+
         public ParsingException()
         {
         }
@@ -17,11 +20,17 @@ namespace Interpreter_lib.Parser
         {
         }
 
-        public ParsingException(string? message, Exception? innerException) : base(message, innerException)
+        public ParsingException(string? message, Token? token) : base(message)
         {
+            Token = token;
         }
 
-        protected ParsingException(SerializationInfo info, StreamingContext context) : base(info, context)
+        public ParsingException(string? message, Token? token, Exception? innerException) : base(message, innerException)
+        {
+            Token = token;
+        }
+
+        public ParsingException(string? message, Exception? innerException) : base(message, innerException)
         {
         }
     }
