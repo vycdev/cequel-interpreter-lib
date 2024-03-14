@@ -9,28 +9,32 @@ namespace Interpreter_lib.Parser
 {
     internal class Rule : IRuleConfiguration, IRuleContinuationConfiguration, IRuleFrequencyConfiguration, IRuleTokenConfiguration, IRuleRuleConfiguration
     {
-        public long _currentTokenIndex = 0;
-        public bool _isHoisted = false;
-        public bool _isExcluded = false;
+        private int _currentTokenIndex = 0;
+        private bool _isHoisted = false;
+        private bool _isExcluded = false;
 
         private Action<IRuleConfiguration> _definition;
         private List<Token> _tokens = new();
+        private Node _tree = new();
+
+        private bool _isMatched = false;
 
         public Rule(Action<IRuleConfiguration> definition)
         {
             _definition = definition;
             // Example:
             // new Rule(o => o
-            //         .WithT(EToken.REPEAT).Once()
-            //         .GotoT(EToken.UNTIL).Once()
-            //         .ThenR(logicalExpressionRule)
+            //         .WithT(EToken.REPEAT).Exclude().Once()
+            //         .ThenR(logicalExpressionRule).Hoist().Once()
             //      );
         } 
 
-        public void Evaluate(List<Token> tokens)
+        public Node Evaluate(List<Token> tokens)
         {
             _tokens = tokens;
             _definition(this);
+
+            return _tree;
         }
 
         private void Reset()
@@ -39,6 +43,7 @@ namespace Interpreter_lib.Parser
             _isHoisted = false;
             _isExcluded = false;
             _tokens.Clear();
+            _tree = new();
         }
 
         #region WITH 
@@ -46,13 +51,24 @@ namespace Interpreter_lib.Parser
         // Match the first token in the sequence
         IRuleTokenConfiguration IRuleConfiguration.WithT(EToken token)
         {
-            throw new NotImplementedException();
+            if (_tokens[_currentTokenIndex].Type == token)
+            {
+                _currentTokenIndex++;
+                _isMatched = true;
+                return this; 
+            }
+
+            // TODO: If I dont match the first token then I want to skip the rule without throwing an exception. 
+
+            return this; 
         }
 
         // Match the first rule in the sequence
         IRuleRuleConfiguration IRuleConfiguration.WithR(Action<IRuleConfiguration> configuration)
         {
-            throw new NotImplementedException();
+            configuration(this); 
+
+            return this; 
         }
 
         #endregion
@@ -64,22 +80,6 @@ namespace Interpreter_lib.Parser
         }
 
         IRuleTokenConfiguration IRuleContinuationConfiguration.ThenT(EToken token)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
-
-        #region GOTO
-        
-        // Skip tokens until matching the token 
-        IRuleTokenConfiguration IRuleContinuationConfiguration.GotoT(EToken token)
-        {
-            throw new NotImplementedException();
-        }
-
-        // Skip tokens until matching the rule
-        IRuleRuleConfiguration IRuleContinuationConfiguration.GotoR(Action<IRuleConfiguration> configuration)
         {
             throw new NotImplementedException();
         }
