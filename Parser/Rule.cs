@@ -120,14 +120,18 @@ namespace Interpreter_lib.Parser
         // but not included in the resultant tree
         IRuleTokenConfiguration IRuleTokenConfiguration.Exclude()
         {
-            throw new NotImplementedException();
+            _isExcluded = true;
+
+            return this;
         }
 
         // This can be applied to rule elements (such as SubsequentSum) and will cause the element to be replaced
         // by it's content causing the content to be hoisted up a level
-        IRuleTokenConfiguration IRuleRuleConfiguration.Hoist()
+        IRuleRuleConfiguration IRuleRuleConfiguration.Hoist()
         {
-            throw new NotImplementedException();
+            _isHoisted = true;
+
+            return this;
         }
 
         #endregion
