@@ -7,19 +7,25 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Parser
 {
-    internal class Rule : IRuleConfiguration, IRuleContinuationConfiguration, IRuleFrequencyConfiguration, IRuleTokenConfiguration, IRuleRuleConfiguration
+    public enum ERule
+    {
+        SUM,
+    }
+
+    public class Rule : IRuleConfiguration, IRuleContinuationConfiguration, IRuleFrequencyConfiguration, IRuleTokenConfiguration, IRuleRuleConfiguration
     {
         private int _currentTokenIndex = 0;
         private EToken _currentTokenToMatch; 
+        private int _frequencyMethodsPassed = 0; 
         
         private bool _isHoisted = false;
         private bool _isExcluded = false;
 
         private Action<IRuleConfiguration> _definition;
+        private ERule _rule { get; }
+
         private List<Token> _tokens = new();
         private Node _tree = new();
-
-        private int _frequencyMethodsPassed = 0; 
 
         // TODO: More information about the exception (give the token to the exception, better message, etc.)
 
@@ -63,11 +69,11 @@ namespace Interpreter_lib.Parser
         }
 
         // Match the first rule in the sequence
-        IRuleRuleConfiguration IRuleConfiguration.WithR(Action<IRuleConfiguration> definition)
+        IRuleRuleConfiguration IRuleConfiguration.WithR(Rule rule)
         {
             _isHoisted = false;
             _frequencyMethodsPassed = 0;
-            definition(this); 
+            _tree.Add(rule.Evaluate(_tokens)); 
 
             return this; 
         }
@@ -83,10 +89,13 @@ namespace Interpreter_lib.Parser
             return this;
         }
 
-        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(Action<IRuleConfiguration> definition)
+        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(Rule rule)
         {
             _isHoisted = false;
-            definition(this);
+            if(_currentTokenIndex > 0)
+                _tree.Add(rule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList()));
+            else 
+                _tree.Add(rule.Evaluate(_tokens));
 
             return this; 
         }

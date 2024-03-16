@@ -6,21 +6,24 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Parser
 {
-    internal class Node
+    public class Node
     {
+        private ERule _rule { get; } 
         private List<Node> nodes = new();
 
         #region Constructors
         public Node() { }
  
-        public Node(Node node)
+        public Node(Node node, ERule rule)
         {
             nodes.Add(node);
+            _rule = rule;
         }
 
-        public Node(List<Node> nodes)
+        public Node(List<Node> nodes, ERule rule)
         {
             this.nodes = nodes;
+            _rule = rule;
         }
 
         #endregion
