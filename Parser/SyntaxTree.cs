@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Interpreter_lib.Tokenizer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,34 +9,50 @@ namespace Interpreter_lib.Parser
 {
     public class Node
     {
-        private ERule _rule { get; } 
-        private List<Node> nodes = new();
+        private ERule _rule;
+        private List<Node> _nodes;
+        private List<Token> _tokens;
+        public bool IsEmpty => _nodes.Count == 0 && _tokens.Count == 0;
 
-        #region Constructors
-        public Node() { }
- 
-        public Node(Node node, ERule rule)
+        public Node(ERule rule) 
         {
-            nodes.Add(node);
+            _nodes = new();
+            _tokens = new();
             _rule = rule;
         }
 
-        public Node(List<Node> nodes, ERule rule)
+        public ERule GetRule()
         {
-            this.nodes = nodes;
-            _rule = rule;
+            return _rule;
         }
 
-        #endregion
+        public List<Node> GetNodes()
+        {
+            return _nodes;
+        }
+        public List<Token> GetTokens()
+        {
+            return _tokens;
+        }
 
         public void Add(Node node)
         {
-            nodes.Add(node);
+            _nodes.Add(node);
         }
 
         public void Add(List<Node> nodes)
         {
-            this.nodes.AddRange(nodes);
+            _nodes.AddRange(nodes);
+        }
+
+        public void Add(Token token)
+        {
+            _tokens.Add(token);
+        }
+
+        public void Add(List<Token> tokens)
+        {
+            _tokens.AddRange(tokens);
         }
     }
 }
