@@ -14,6 +14,7 @@ namespace Interpreter_lib.Utils
 
         static Languages()
         {
+            // TODO: Get the languages from a file at runtime. (That way users can make custom languages easily if they want to)
             romanian.READ = "citeste";
             romanian.WRITE = "scrie";
             romanian.IF = "daca";
