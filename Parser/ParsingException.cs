@@ -10,28 +10,11 @@ namespace Interpreter_lib.Parser
 {
     internal class ParsingException : Exception
     {
-        public Token? Token { get; set; }
+        public Rule? Rule { get; }
 
-        public ParsingException()
+        public ParsingException(Rule? rule, string? message) : base(message)
         {
-        }
-
-        public ParsingException(string? message) : base(message)
-        {
-        }
-
-        public ParsingException(string? message, Token? token) : base(message)
-        {
-            Token = token;
-        }
-
-        public ParsingException(string? message, Token? token, Exception? innerException) : base(message, innerException)
-        {
-            Token = token;
-        }
-
-        public ParsingException(string? message, Exception? innerException) : base(message, innerException)
-        {
+            Rule = rule;
         }
     }
 }
