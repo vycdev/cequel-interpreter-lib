@@ -16,9 +16,10 @@ namespace Interpreter_lib.Parser
     {
         // Used for traversing the tokens array.  
         private int _currentTokenIndex = 0;
-        private int _frequencyMethodsPassed = 0; 
-        private EToken _currentTokenToMatch; 
-        
+        private int _frequencyMethodsPassed = 0; // TODO: change this to a boolean  
+        private EToken? _currentTokenToMatch;
+        private Rule? _currentRuleToMatch;
+
         // Used for additional behavior when creating the nodes.
         private bool _isHoisted = false;
         private bool _isExcluded = false;
@@ -28,14 +29,18 @@ namespace Interpreter_lib.Parser
         private Action<IRuleConfiguration> _definition;
 
         // Data from which the syntax tree is created.
-        private List<Token> _tokens = new();
-        private Node _tree = new();
+        private List<Token> _tokens;
+        private Node _tree;
 
         // TODO: More information about the exception (give the token to the exception, better message, etc.)
+        // TODO: remove the exceptions from here 
 
-        public Rule(Action<IRuleConfiguration> definition)
+        public Rule(ERule rule, Action<IRuleConfiguration> definition)
         {
             _definition = definition;
+            _rule = rule;
+            _tree = new(_rule);
+            _tokens = new();
             // Example:
             // new Rule(o => o
             //         .WithT(EToken.REPEAT).Exclude().Once()
@@ -57,7 +62,7 @@ namespace Interpreter_lib.Parser
             _isHoisted = false;
             _isExcluded = false;
             _tokens.Clear();
-            _tree = new();
+            _tree = new(_rule);
         }
 
         #region WITH 
@@ -68,6 +73,7 @@ namespace Interpreter_lib.Parser
             _isExcluded = false;
             _frequencyMethodsPassed = 0;
             _currentTokenToMatch = token;
+            _currentRuleToMatch = null;
 
             return this; 
         }
@@ -77,8 +83,10 @@ namespace Interpreter_lib.Parser
         {
             _isHoisted = false;
             _frequencyMethodsPassed = 0;
-            _tree.Add(rule.Evaluate(_tokens));
-            _currentTokenIndex += rule._currentTokenIndex;
+            _currentRuleToMatch = rule;
+            _currentTokenToMatch = null;
+            // _tree.Add(rule.Evaluate(_tokens));
+            // _currentTokenIndex += rule._currentTokenIndex;
 
             return this; 
         }
@@ -90,6 +98,7 @@ namespace Interpreter_lib.Parser
         {
             _isExcluded = false; 
             _currentTokenToMatch = token;
+            _currentRuleToMatch = null;
 
             return this;
         }
@@ -97,12 +106,14 @@ namespace Interpreter_lib.Parser
         IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(Rule rule)
         {
             _isHoisted = false;
-            if(_currentTokenIndex > 0)
-                _tree.Add(rule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList()));
-            else 
-                _tree.Add(rule.Evaluate(_tokens));
+            _currentRuleToMatch = rule;
+            _currentTokenToMatch = null;
+            //if(_currentTokenIndex > 0)
+            //    _tree.Add(rule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList()));
+            //else 
+            //    _tree.Add(rule.Evaluate(_tokens));
 
-            _currentTokenIndex += rule._currentTokenIndex;
+            //_currentTokenIndex += rule._currentTokenIndex;
 
             return this; 
         }
@@ -114,18 +125,37 @@ namespace Interpreter_lib.Parser
         // Match exactly once
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.Once()
         {
-            if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+            if (_currentTokenToMatch != null && _tokens[_currentTokenIndex].Type == _currentTokenToMatch)
             {
+                AddToTree(_tokens[_currentTokenIndex]);
+                
                 _currentTokenIndex++;
                 _frequencyMethodsPassed++;
+            } 
+            else if(_currentRuleToMatch != null)
+            {
+                Node node; 
+                if(_currentTokenIndex > 0)
+                    node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                else
+                    node = _currentRuleToMatch.Evaluate(_tokens);
 
-                // TODO: Add the token to the tree
-
-                return this; 
+                if(!node.IsEmpty)
+                {
+                    AddToTree(node);
+                    _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
+                    _frequencyMethodsPassed++;
+                    _currentRuleToMatch.Reset();
+                } 
+                else if(_frequencyMethodsPassed > 0)
+                {
+                    throw new ParsingException(this, "Rule matched less than once.");
+                }
+            } 
+            else if (_frequencyMethodsPassed > 0)
+            {
+                throw new ParsingException(this, "Token matched more than once.");
             }
-
-            if(_frequencyMethodsPassed > 0)
-                throw new ParsingException("Token not matched.");
             
             return this; 
         }
@@ -134,17 +164,44 @@ namespace Interpreter_lib.Parser
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtLeastOnce()
         {
             bool ok = false;
-            while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+         
+            if(_currentTokenToMatch != null)
             {
-                _currentTokenToMatch++;
-                // TODO: Add the token to the tree
-                
-                ok = true;
-            }
+                while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+                {
+                    AddToTree(_tokens[_currentTokenIndex]);
+                    _currentTokenToMatch++;
 
-            if(_frequencyMethodsPassed > 0 && !ok)
-                throw new ParsingException("Token matched less than once.");
-            
+                    ok = true;
+                }
+
+                if (_frequencyMethodsPassed > 0 && !ok)
+                    throw new ParsingException(this, "Token matched less than once.");
+            } 
+            else if (_currentRuleToMatch != null)
+            {
+                Node node;
+
+                do
+                {
+                    if (_currentTokenIndex > 0)
+                        node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                    else
+                        node = _currentRuleToMatch.Evaluate(_tokens);
+
+                    if (!node.IsEmpty)
+                    {
+                        AddToTree(node);
+                        _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
+                        _currentRuleToMatch.Reset();
+                        ok = true;
+                    }
+                    else if(_frequencyMethodsPassed > 0 && !ok)
+                    {
+                        throw new ParsingException(this, "Rule matched less than once.");
+                    }
+                } while (!node.IsEmpty);
+            }
 
             _frequencyMethodsPassed++;
             return this; 
@@ -205,6 +262,23 @@ namespace Interpreter_lib.Parser
 
         #endregion
 
+        private void AddToTree(Token token)
+        {
+            if(!_isExcluded)
+                _tree.Add(token);
+        }
 
+        private void AddToTree(Node node)
+        {
+            if (_isHoisted)
+            {
+                _tree.Add(node.GetNodes());
+                _tree.Add(node.GetTokens());
+            }
+            else
+            {
+                _tree.Add(node);
+            }
+        }
     }
 }
