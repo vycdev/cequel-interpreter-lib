@@ -14,16 +14,20 @@ namespace Interpreter_lib.Parser
 
     public class Rule : IRuleConfiguration, IRuleContinuationConfiguration, IRuleFrequencyConfiguration, IRuleTokenConfiguration, IRuleRuleConfiguration
     {
+        // Used for traversing the tokens array.  
         private int _currentTokenIndex = 0;
-        private EToken _currentTokenToMatch; 
         private int _frequencyMethodsPassed = 0; 
+        private EToken _currentTokenToMatch; 
         
+        // Used for additional behavior when creating the nodes.
         private bool _isHoisted = false;
         private bool _isExcluded = false;
 
-        private Action<IRuleConfiguration> _definition;
+        // Used for defining the rule.
         private ERule _rule { get; }
+        private Action<IRuleConfiguration> _definition;
 
+        // Data from which the syntax tree is created.
         private List<Token> _tokens = new();
         private Node _tree = new();
 
@@ -73,7 +77,8 @@ namespace Interpreter_lib.Parser
         {
             _isHoisted = false;
             _frequencyMethodsPassed = 0;
-            _tree.Add(rule.Evaluate(_tokens)); 
+            _tree.Add(rule.Evaluate(_tokens));
+            _currentTokenIndex += rule._currentTokenIndex;
 
             return this; 
         }
@@ -96,6 +101,8 @@ namespace Interpreter_lib.Parser
                 _tree.Add(rule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList()));
             else 
                 _tree.Add(rule.Evaluate(_tokens));
+
+            _currentTokenIndex += rule._currentTokenIndex;
 
             return this; 
         }
@@ -197,5 +204,7 @@ namespace Interpreter_lib.Parser
         }
 
         #endregion
+
+
     }
 }
