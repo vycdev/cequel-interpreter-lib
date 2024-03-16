@@ -16,7 +16,7 @@ namespace Interpreter_lib.Parser
     {
         // Used for traversing the tokens array.  
         private int _currentTokenIndex = 0;
-        private int _frequencyMethodsPassed = 0; // TODO: change this to a boolean  
+        private bool _hasPassedWithMethod; 
         private EToken? _currentTokenToMatch;
         private Rule? _currentRuleToMatch;
 
@@ -32,15 +32,13 @@ namespace Interpreter_lib.Parser
         private List<Token> _tokens;
         private Node _tree;
 
-        // TODO: More information about the exception (give the token to the exception, better message, etc.)
-        // TODO: remove the exceptions from here 
-
         public Rule(ERule rule, Action<IRuleConfiguration> definition)
         {
             _definition = definition;
             _rule = rule;
             _tree = new(_rule);
             _tokens = new();
+            _hasPassedWithMethod = false; 
             // Example:
             // new Rule(o => o
             //         .WithT(EToken.REPEAT).Exclude().Once()
@@ -63,6 +61,7 @@ namespace Interpreter_lib.Parser
             _isExcluded = false;
             _tokens.Clear();
             _tree = new(_rule);
+            _hasPassedWithMethod = false;
         }
 
         #region WITH 
@@ -71,7 +70,7 @@ namespace Interpreter_lib.Parser
         IRuleTokenConfiguration IRuleConfiguration.WithT(EToken token)
         {
             _isExcluded = false;
-            _frequencyMethodsPassed = 0;
+            _hasPassedWithMethod = false;
             _currentTokenToMatch = token;
             _currentRuleToMatch = null;
 
@@ -82,11 +81,9 @@ namespace Interpreter_lib.Parser
         IRuleRuleConfiguration IRuleConfiguration.WithR(Rule rule)
         {
             _isHoisted = false;
-            _frequencyMethodsPassed = 0;
+            _hasPassedWithMethod = false;
             _currentRuleToMatch = rule;
             _currentTokenToMatch = null;
-            // _tree.Add(rule.Evaluate(_tokens));
-            // _currentTokenIndex += rule._currentTokenIndex;
 
             return this; 
         }
@@ -108,12 +105,6 @@ namespace Interpreter_lib.Parser
             _isHoisted = false;
             _currentRuleToMatch = rule;
             _currentTokenToMatch = null;
-            //if(_currentTokenIndex > 0)
-            //    _tree.Add(rule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList()));
-            //else 
-            //    _tree.Add(rule.Evaluate(_tokens));
-
-            //_currentTokenIndex += rule._currentTokenIndex;
 
             return this; 
         }
@@ -130,7 +121,7 @@ namespace Interpreter_lib.Parser
                 AddToTree(_tokens[_currentTokenIndex]);
                 
                 _currentTokenIndex++;
-                _frequencyMethodsPassed++;
+                _hasPassedWithMethod = true;
             } 
             else if(_currentRuleToMatch != null)
             {
@@ -144,15 +135,15 @@ namespace Interpreter_lib.Parser
                 {
                     AddToTree(node);
                     _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
-                    _frequencyMethodsPassed++;
+                    _hasPassedWithMethod = true;
                     _currentRuleToMatch.Reset();
                 } 
-                else if(_frequencyMethodsPassed > 0)
+                else if(_hasPassedWithMethod)
                 {
                     throw new ParsingException(this, "Rule matched less than once.");
                 }
             } 
-            else if (_frequencyMethodsPassed > 0)
+            else if (_hasPassedWithMethod)
             {
                 throw new ParsingException(this, "Token matched more than once.");
             }
@@ -175,7 +166,7 @@ namespace Interpreter_lib.Parser
                     ok = true;
                 }
 
-                if (_frequencyMethodsPassed > 0 && !ok)
+                if (_hasPassedWithMethod && !ok)
                     throw new ParsingException(this, "Token matched less than once.");
             } 
             else if (_currentRuleToMatch != null)
@@ -196,14 +187,14 @@ namespace Interpreter_lib.Parser
                         _currentRuleToMatch.Reset();
                         ok = true;
                     }
-                    else if(_frequencyMethodsPassed > 0 && !ok)
+                    else if(_hasPassedWithMethod && !ok)
                     {
                         throw new ParsingException(this, "Rule matched less than once.");
                     }
                 } while (!node.IsEmpty);
             }
 
-            _frequencyMethodsPassed++;
+            _hasPassedWithMethod = true;
             return this; 
         }
 
@@ -215,12 +206,12 @@ namespace Interpreter_lib.Parser
                 _currentTokenToMatch++;
                 // TODO: Add the token to the tree  
 
-                if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch && _frequencyMethodsPassed > 0)
+                if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch && _hasPassedWithMethod > 0)
                     throw new ParsingException("Token matched more than once.");
             }
 
 
-            _frequencyMethodsPassed++;
+            _hasPassedWithMethod++;
             return this; 
         }
 
@@ -234,7 +225,7 @@ namespace Interpreter_lib.Parser
                 // TODO: Add the token to the tree
             }
 
-            _frequencyMethodsPassed++;
+            _hasPassedWithMethod++;
             return this; 
         }
 
