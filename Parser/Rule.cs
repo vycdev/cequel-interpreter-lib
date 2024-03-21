@@ -10,6 +10,7 @@ namespace Interpreter_lib.Parser
     public enum ERule
     {
         SUM,
+        SUBSEQUENTSUM,
     }
 
     public class Rule : IRuleConfiguration, IRuleContinuationConfiguration, IRuleFrequencyConfiguration, IRuleTokenConfiguration, IRuleRuleConfiguration
@@ -119,6 +120,7 @@ namespace Interpreter_lib.Parser
             if (_currentTokenToMatch != null && _tokens[_currentTokenIndex].Type == _currentTokenToMatch)
             {
                 AddToTree(_tokens[_currentTokenIndex]);
+                _hasPassedWithMethod = true;
                 _currentTokenIndex++;
             } 
             else if(_currentRuleToMatch != null)
@@ -134,7 +136,8 @@ namespace Interpreter_lib.Parser
                     AddToTree(node);
                     _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
                     _currentRuleToMatch.Reset();
-                } 
+                    _hasPassedWithMethod = true;
+                }
                 else if(_hasPassedWithMethod)
                 {
                     throw new ParsingException(this, "Rule matched less than once.");
@@ -145,7 +148,6 @@ namespace Interpreter_lib.Parser
                 throw new ParsingException(this, "Token matched more than once.");
             }
 
-            _hasPassedWithMethod = true;
             return this; 
         }
 
