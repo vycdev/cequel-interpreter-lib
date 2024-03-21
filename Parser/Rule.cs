@@ -240,14 +240,34 @@ namespace Interpreter_lib.Parser
         // Match zero or more times
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.ZeroOrMore()
         {
-            while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+            if(_currentTokenToMatch != null)
             {
-                _currentTokenToMatch++;
+                while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+                {
+                    AddToTree(_tokens[_currentTokenIndex]);
+                    _currentTokenToMatch++;
+                }
+            }
+            else if(_currentRuleToMatch != null)
+            {
+                Node node;
+                do
+                {
+                    if (_currentTokenIndex > 0)
+                        node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                    else
+                        node = _currentRuleToMatch.Evaluate(_tokens);
 
-                // TODO: Add the token to the tree
+                    if (!node.IsEmpty)
+                    {
+                        AddToTree(node);
+                        _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
+                        _currentRuleToMatch.Reset();
+                    }
+                } while (!node.IsEmpty);
             }
 
-            _hasPassedWithMethod++;
+            _hasPassedWithMethod = true;
             return this; 
         }
 
