@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Parser
 {
-
-
-
     public class Parser
     {
         // Rules
@@ -60,6 +57,5 @@ namespace Interpreter_lib.Parser
         {
             return _tree;
         }
-
     }
 }
