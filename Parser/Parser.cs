@@ -32,11 +32,23 @@ namespace Interpreter_lib.Parser
         // Data from which the syntax tree is created.
         private List<Token> _tokens;
         private List<Node> _tree;
+        private Dictionary<ERule, Rule> _rules;
 
         public Parser(List<Token> tokens)
         {
             _tokens = tokens;
             _tree = new();
+            _rules = new();
+
+            _rules.Add(ERule.SUBSEQUENTSUM, new Rule(ERule.SUBSEQUENTSUM, o =>
+                            o.WithT(EToken.PLUS).Exclude().Once()
+                             .ThenT(EToken.NUMBER).Once()
+                        ));
+
+            _rules.Add(ERule.SUM, new Rule(ERule.SUM, o =>
+                            o.WithT(EToken.NUMBER).Once()
+                            .ThenR(_rules[ERule.SUBSEQUENTSUM]).Hoist().AtLeastOnce()
+                        ));
         }
 
         public void Parse()
