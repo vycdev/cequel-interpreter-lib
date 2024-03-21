@@ -119,9 +119,7 @@ namespace Interpreter_lib.Parser
             if (_currentTokenToMatch != null && _tokens[_currentTokenIndex].Type == _currentTokenToMatch)
             {
                 AddToTree(_tokens[_currentTokenIndex]);
-                
                 _currentTokenIndex++;
-                _hasPassedWithMethod = true;
             } 
             else if(_currentRuleToMatch != null)
             {
@@ -135,7 +133,6 @@ namespace Interpreter_lib.Parser
                 {
                     AddToTree(node);
                     _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
-                    _hasPassedWithMethod = true;
                     _currentRuleToMatch.Reset();
                 } 
                 else if(_hasPassedWithMethod)
@@ -147,7 +144,8 @@ namespace Interpreter_lib.Parser
             {
                 throw new ParsingException(this, "Token matched more than once.");
             }
-            
+
+            _hasPassedWithMethod = true;
             return this; 
         }
 
@@ -201,18 +199,42 @@ namespace Interpreter_lib.Parser
         // Match zero or one time at most
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtMostOnce()
         {
-            if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+            if (_currentTokenToMatch != null)
             {
-                _currentTokenToMatch++;
-                // TODO: Add the token to the tree  
+                if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+                {
+                    AddToTree(_tokens[_currentTokenIndex]);
+                    _currentTokenToMatch++;
 
-                if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch && _hasPassedWithMethod > 0)
-                    throw new ParsingException("Token matched more than once.");
+                    if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch && _hasPassedWithMethod)
+                        throw new ParsingException(this, "Token matched more than once.");
+                }
+            }
+            else if (_currentRuleToMatch != null)
+            {
+                Node node;
+                if (_currentTokenIndex > 0)
+                    node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                else
+                    node = _currentRuleToMatch.Evaluate(_tokens);
+
+                if (!node.IsEmpty)
+                {
+                    AddToTree(node);
+                    _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
+                    _currentRuleToMatch.Reset();
+                    if (_currentTokenIndex > 0)
+                        node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                    else
+                        node = _currentRuleToMatch.Evaluate(_tokens);
+
+                    if (!node.IsEmpty && _hasPassedWithMethod)
+                        throw new ParsingException(this, "Rule matched more than once.");
+                }
             }
 
-
-            _hasPassedWithMethod++;
-            return this; 
+            _hasPassedWithMethod = true;
+            return this;
         }
 
         // Match zero or more times
