@@ -15,11 +15,14 @@ namespace Interpreter_lib.Parser
 
     public class Rule : IRuleConfiguration, IRuleContinuationConfiguration, IRuleFrequencyConfiguration, IRuleTokenConfiguration, IRuleRuleConfiguration
     {
+        // Rules
+        private static List<Rule> _rules = new();
+
         // Used for traversing the tokens array.  
         private int _currentTokenIndex = 0;
-        private bool _hasPassedWithMethod; 
+        private bool _hasPassedWithMethod;
         private EToken? _currentTokenToMatch;
-        private Rule? _currentRuleToMatch;
+        private ERule? _currentRuleToMatch;
 
         // Used for additional behavior when creating the nodes.
         private bool _isHoisted = false;
@@ -39,13 +42,13 @@ namespace Interpreter_lib.Parser
             _rule = rule;
             _tree = new(_rule);
             _tokens = new();
-            _hasPassedWithMethod = false; 
+            _hasPassedWithMethod = false;
             // Example:
             // new Rule(o => o
             //         .WithT(EToken.REPEAT).Exclude().Once()
             //         .ThenR(logicalExpressionRule).Hoist().Once()
             //      );
-        } 
+        }
 
         public Node Evaluate(List<Token> tokens)
         {
@@ -75,18 +78,18 @@ namespace Interpreter_lib.Parser
             _currentTokenToMatch = token;
             _currentRuleToMatch = null;
 
-            return this; 
+            return this;
         }
 
         // Match the first rule in the sequence
-        IRuleRuleConfiguration IRuleConfiguration.WithR(Rule rule)
+        IRuleRuleConfiguration IRuleConfiguration.WithR(ERule rule)
         {
             _isHoisted = false;
             _hasPassedWithMethod = false;
             _currentRuleToMatch = rule;
             _currentTokenToMatch = null;
 
-            return this; 
+            return this;
         }
 
         #endregion
@@ -94,20 +97,20 @@ namespace Interpreter_lib.Parser
         #region THEN
         IRuleTokenConfiguration IRuleContinuationConfiguration.ThenT(EToken token)
         {
-            _isExcluded = false; 
+            _isExcluded = false;
             _currentTokenToMatch = token;
             _currentRuleToMatch = null;
 
             return this;
         }
 
-        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(Rule rule)
+        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(ERule rule)
         {
             _isHoisted = false;
             _currentRuleToMatch = rule;
             _currentTokenToMatch = null;
 
-            return this; 
+            return this;
         }
 
         #endregion
@@ -122,41 +125,42 @@ namespace Interpreter_lib.Parser
                 AddToTree(_tokens[_currentTokenIndex]);
                 _hasPassedWithMethod = true;
                 _currentTokenIndex++;
-            } 
-            else if(_currentRuleToMatch != null)
+            }
+            else if (_currentRuleToMatch != null)
             {
-                Node node; 
-                if(_currentTokenIndex > 0)
-                    node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                Rule currentRule = GetRule(_currentRuleToMatch.Value);
+                Node node;
+                if (_currentTokenIndex > 0)
+                    node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
                 else
-                    node = _currentRuleToMatch.Evaluate(_tokens);
+                    node = currentRule.Evaluate(_tokens);
 
-                if(!node.IsEmpty)
+                if (!node.IsEmpty)
                 {
                     AddToTree(node);
-                    _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
-                    _currentRuleToMatch.Reset();
+                    _currentTokenIndex += currentRule._currentTokenIndex;
+                    currentRule.Reset();
                     _hasPassedWithMethod = true;
                 }
-                else if(_hasPassedWithMethod)
+                else if (_hasPassedWithMethod)
                 {
                     throw new ParsingException(this, "Rule matched less than once.");
                 }
-            } 
+            }
             else if (_hasPassedWithMethod)
             {
                 throw new ParsingException(this, "Token matched more than once.");
             }
 
-            return this; 
+            return this;
         }
 
         // Match at least once
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtLeastOnce()
         {
             bool ok = false;
-         
-            if(_currentTokenToMatch != null)
+
+            if (_currentTokenToMatch != null)
             {
                 while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
                 {
@@ -168,26 +172,27 @@ namespace Interpreter_lib.Parser
 
                 if (_hasPassedWithMethod && !ok)
                     throw new ParsingException(this, "Token matched less than once.");
-            } 
+            }
             else if (_currentRuleToMatch != null)
             {
+                Rule currentRule = GetRule(_currentRuleToMatch.Value);
                 Node node;
 
                 do
                 {
                     if (_currentTokenIndex > 0)
-                        node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
                     else
-                        node = _currentRuleToMatch.Evaluate(_tokens);
+                        node = currentRule.Evaluate(_tokens);
 
                     if (!node.IsEmpty)
                     {
                         AddToTree(node);
-                        _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
-                        _currentRuleToMatch.Reset();
+                        _currentTokenIndex += currentRule._currentTokenIndex;
+                        currentRule.Reset();
                         ok = true;
                     }
-                    else if(_hasPassedWithMethod && !ok)
+                    else if (_hasPassedWithMethod && !ok)
                     {
                         throw new ParsingException(this, "Rule matched less than once.");
                     }
@@ -195,7 +200,7 @@ namespace Interpreter_lib.Parser
             }
 
             _hasPassedWithMethod = true;
-            return this; 
+            return this;
         }
 
         // Match zero or one time at most
@@ -214,21 +219,23 @@ namespace Interpreter_lib.Parser
             }
             else if (_currentRuleToMatch != null)
             {
+                Rule currentRule = GetRule(_currentRuleToMatch.Value);
                 Node node;
+
                 if (_currentTokenIndex > 0)
-                    node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                    node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
                 else
-                    node = _currentRuleToMatch.Evaluate(_tokens);
+                    node = currentRule.Evaluate(_tokens);
 
                 if (!node.IsEmpty)
                 {
                     AddToTree(node);
-                    _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
-                    _currentRuleToMatch.Reset();
+                    _currentTokenIndex += currentRule._currentTokenIndex;
+                    currentRule.Reset();
                     if (_currentTokenIndex > 0)
-                        node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
                     else
-                        node = _currentRuleToMatch.Evaluate(_tokens);
+                        node = currentRule.Evaluate(_tokens);
 
                     if (!node.IsEmpty && _hasPassedWithMethod)
                         throw new ParsingException(this, "Rule matched more than once.");
@@ -242,7 +249,7 @@ namespace Interpreter_lib.Parser
         // Match zero or more times
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.ZeroOrMore()
         {
-            if(_currentTokenToMatch != null)
+            if (_currentTokenToMatch != null)
             {
                 while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
                 {
@@ -250,27 +257,29 @@ namespace Interpreter_lib.Parser
                     _currentTokenToMatch++;
                 }
             }
-            else if(_currentRuleToMatch != null)
+            else if (_currentRuleToMatch != null)
             {
+                Rule currentRule = GetRule(_currentRuleToMatch.Value);
                 Node node;
+
                 do
                 {
                     if (_currentTokenIndex > 0)
-                        node = _currentRuleToMatch.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
                     else
-                        node = _currentRuleToMatch.Evaluate(_tokens);
+                        node = currentRule.Evaluate(_tokens);
 
                     if (!node.IsEmpty)
                     {
                         AddToTree(node);
-                        _currentTokenIndex += _currentRuleToMatch._currentTokenIndex;
-                        _currentRuleToMatch.Reset();
+                        _currentTokenIndex += currentRule._currentTokenIndex;
+                        currentRule.Reset();
                     }
                 } while (!node.IsEmpty);
             }
 
             _hasPassedWithMethod = true;
-            return this; 
+            return this;
         }
 
         #endregion
@@ -297,9 +306,10 @@ namespace Interpreter_lib.Parser
 
         #endregion
 
+        #region TREE MANIPULATION
         private void AddToTree(Token token)
         {
-            if(!_isExcluded)
+            if (!_isExcluded)
                 _tree.Add(token);
         }
 
@@ -315,5 +325,23 @@ namespace Interpreter_lib.Parser
                 _tree.Add(node);
             }
         }
+        #endregion
+
+        #region STATIC METHODS
+        public static Rule GetRule(ERule rule)
+        {
+            return _rules.First(r => r._rule == rule);
+        }
+
+        public static List<Rule> GetRules()
+        {
+            return _rules;
+        }
+
+        public static void AddRule(Rule rule)
+        {
+            _rules.Add(rule);
+        }
+        #endregion
     }
 }
