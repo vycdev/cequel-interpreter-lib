@@ -9,8 +9,22 @@ namespace Interpreter_lib.Parser
 {
     public enum ERule
     {
-        SUM,
-        SUBSEQUENTSUM,
+        // Arithmetic expressions
+        ARITHMETIC_EXPRESSION,
+        
+        SUM, SUBSEQUENTSUM,
+        SUBSTRACT, SUBSEQUENTSUBSTRACT,
+        MULTIPLY, SUBSEQUENTMULTIPLY,
+        DIVIDE, SUBSEQUENTDIVIDE,
+        POWER, SUBSEQUENTPOWER,
+        MODULUS, SUBSEQUENTMODULUS,
+        FLOOR,
+     
+        // Logical expressions
+        LOGICAL_EXPRESSION,
+
+        // Common
+        GROUP, 
     }
 
     public class Rule : IRuleConfiguration, IRuleContinuationConfiguration, IRuleFrequencyConfiguration, IRuleTokenConfiguration, IRuleRuleConfiguration
@@ -128,28 +142,36 @@ namespace Interpreter_lib.Parser
             }
             else if (_currentRuleToMatch != null)
             {
-                Rule currentRule = GetRule(_currentRuleToMatch.Value);
+                List<Rule> currentRules = GetRules(_currentRuleToMatch.Value);
                 Node node;
-                if (_currentTokenIndex > 0)
-                    node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                else
-                    node = currentRule.Evaluate(_tokens);
+                var ok = false; 
+                
+                foreach (Rule currentRule in currentRules)
+                {
+                    if (_currentTokenIndex > 0)
+                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                    else
+                        node = currentRule.Evaluate(_tokens);
 
-                if (!node.IsEmpty)
-                {
-                    AddToTree(node);
-                    _currentTokenIndex += currentRule._currentTokenIndex;
-                    currentRule.Reset();
-                    _hasPassedWithMethod = true;
+                    if (!node.IsEmpty)
+                    {
+                        AddToTree(node);
+                        _currentTokenIndex += currentRule._currentTokenIndex;
+                        currentRule.Reset();
+                        _hasPassedWithMethod = true;
+                        ok = true;
+                        break;
+                    }
                 }
-                else if (_hasPassedWithMethod)
+
+                if (_hasPassedWithMethod && !ok)
                 {
-                    throw new ParsingException(this, "Rule matched less than once.");
+                    throw new ParsingException(this, "Rule has matched less than once.");
                 }
             }
             else if (_hasPassedWithMethod)
             {
-                throw new ParsingException(this, "Token matched more than once.");
+                throw new ParsingException(this, "Token has matched less than once.");
             }
 
             return this;
@@ -171,32 +193,36 @@ namespace Interpreter_lib.Parser
                 }
 
                 if (_hasPassedWithMethod && !ok)
-                    throw new ParsingException(this, "Token matched less than once.");
+                    throw new ParsingException(this, "Token has matched less than once.");
             }
             else if (_currentRuleToMatch != null)
             {
-                Rule currentRule = GetRule(_currentRuleToMatch.Value);
+                List<Rule> currentRules = GetRules(_currentRuleToMatch.Value);
                 Node node;
 
-                do
+                foreach (Rule currentRule in currentRules)
                 {
-                    if (_currentTokenIndex > 0)
-                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                    else
-                        node = currentRule.Evaluate(_tokens);
+                    do
+                    {
+                        if (_currentTokenIndex > 0)
+                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                        else
+                            node = currentRule.Evaluate(_tokens);
 
-                    if (!node.IsEmpty)
-                    {
-                        AddToTree(node);
-                        _currentTokenIndex += currentRule._currentTokenIndex;
-                        currentRule.Reset();
-                        ok = true;
-                    }
-                    else if (_hasPassedWithMethod && !ok)
-                    {
-                        throw new ParsingException(this, "Rule matched less than once.");
-                    }
-                } while (!node.IsEmpty);
+                        if (!node.IsEmpty)
+                        {
+                            AddToTree(node);
+                            _currentTokenIndex += currentRule._currentTokenIndex;
+                            currentRule.Reset();
+                            ok = true;
+                        }
+                    } while (!node.IsEmpty);
+                }
+
+                if (_hasPassedWithMethod && !ok)
+                {
+                    throw new ParsingException(this, "Rule has matched less than once.");
+                }
             }
 
             _hasPassedWithMethod = true;
@@ -214,31 +240,45 @@ namespace Interpreter_lib.Parser
                     _currentTokenToMatch++;
 
                     if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch && _hasPassedWithMethod)
-                        throw new ParsingException(this, "Token matched more than once.");
+                        throw new ParsingException(this, "Token has matched more than once.");
                 }
             }
             else if (_currentRuleToMatch != null)
             {
-                Rule currentRule = GetRule(_currentRuleToMatch.Value);
+                List<Rule> currentRules = GetRules(_currentRuleToMatch.Value);
                 Node node;
-
-                if (_currentTokenIndex > 0)
-                    node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                else
-                    node = currentRule.Evaluate(_tokens);
-
-                if (!node.IsEmpty)
+                var ok = false; 
+                foreach (Rule currentRule in currentRules)
                 {
-                    AddToTree(node);
-                    _currentTokenIndex += currentRule._currentTokenIndex;
-                    currentRule.Reset();
                     if (_currentTokenIndex > 0)
                         node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
                     else
                         node = currentRule.Evaluate(_tokens);
 
-                    if (!node.IsEmpty && _hasPassedWithMethod)
-                        throw new ParsingException(this, "Rule matched more than once.");
+                    if (!node.IsEmpty)
+                    {
+                        AddToTree(node);
+                        _currentTokenIndex += currentRule._currentTokenIndex;
+                        currentRule.Reset();
+                        ok = true;
+                        break;
+                    }
+                }
+
+                if(ok)
+                {
+                    foreach (Rule currentRule in currentRules)
+                    {
+                        if (_currentTokenIndex > 0)
+                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                        else
+                            node = currentRule.Evaluate(_tokens);
+
+                        if (!node.IsEmpty && _hasPassedWithMethod)
+                        {
+                            throw new ParsingException(this, "Rule has matched more than once.");
+                        }
+                    }
                 }
             }
 
@@ -259,23 +299,26 @@ namespace Interpreter_lib.Parser
             }
             else if (_currentRuleToMatch != null)
             {
-                Rule currentRule = GetRule(_currentRuleToMatch.Value);
+                List<Rule> currentRules = GetRules(_currentRuleToMatch.Value);
                 Node node;
 
-                do
+                foreach (Rule currentRule in currentRules)
                 {
-                    if (_currentTokenIndex > 0)
-                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                    else
-                        node = currentRule.Evaluate(_tokens);
-
-                    if (!node.IsEmpty)
+                    do
                     {
-                        AddToTree(node);
-                        _currentTokenIndex += currentRule._currentTokenIndex;
-                        currentRule.Reset();
-                    }
-                } while (!node.IsEmpty);
+                        if (_currentTokenIndex > 0)
+                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                        else
+                            node = currentRule.Evaluate(_tokens);
+
+                        if (!node.IsEmpty)
+                        {
+                            AddToTree(node);
+                            _currentTokenIndex += currentRule._currentTokenIndex;
+                            currentRule.Reset();
+                        }
+                    } while (!node.IsEmpty);
+                }
             }
 
             _hasPassedWithMethod = true;
@@ -328,14 +371,19 @@ namespace Interpreter_lib.Parser
         #endregion
 
         #region STATIC METHODS
-        public static Rule GetRule(ERule rule)
-        {
-            return _rules.First(r => r._rule == rule);
-        }
-
         public static List<Rule> GetRules()
         {
             return _rules;
+        }
+
+        public static List<Rule> GetRules(ERule rule)
+        {
+            return _rules.Where(r => r._rule == rule).ToList();
+        }
+
+        public static Rule GetRule(ERule rule)
+        {
+            return _rules.First(r => r._rule == rule);
         }
 
         public static void AddRule(Rule rule)
