@@ -11,20 +11,13 @@ namespace Interpreter_lib.Parser
     {
         // Arithmetic expressions
         ARITHMETIC_EXPRESSION,
-        
-        SUM, SUBSEQUENTSUM,
-        SUBSTRACT, SUBSEQUENTSUBSTRACT,
-        MULTIPLY, SUBSEQUENTMULTIPLY,
-        DIVIDE, SUBSEQUENTDIVIDE,
-        POWER, SUBSEQUENTPOWER,
-        MODULUS, SUBSEQUENTMODULUS,
+        EXPRESSION_ATOM, ARITHMETIC_EXPRESSION_MIDDLE,
+
+        SUM, SUBSTRACT, MULTIPLY, DIVIDE, POWER, MODULUS,
         FLOOR,
      
         // Logical expressions
         LOGICAL_EXPRESSION,
-
-        // Common
-        GROUP, 
     }
 
     public class Rule : IRuleConfiguration, IRuleContinuationConfiguration, IRuleFrequencyConfiguration, IRuleTokenConfiguration, IRuleRuleConfiguration
@@ -33,7 +26,7 @@ namespace Interpreter_lib.Parser
         private static List<Rule> _rules = new();
 
         // Used for traversing the tokens array.  
-        private int _currentTokenIndex = 0;
+        public int _currentTokenIndex { get; private set; } = 0;
         private bool _hasPassedWithMethod;
         private EToken? _currentTokenToMatch;
         private ERule? _currentRuleToMatch;
@@ -43,7 +36,7 @@ namespace Interpreter_lib.Parser
         private bool _isExcluded = false;
 
         // Used for defining the rule.
-        private ERule _rule { get; }
+        public ERule _rule { get; }
         private Action<IRuleConfiguration> _definition;
 
         // Data from which the syntax tree is created.
@@ -72,12 +65,11 @@ namespace Interpreter_lib.Parser
             return _tree;
         }
 
-        private void Reset()
+        public void Reset()
         {
             _currentTokenIndex = 0;
             _isHoisted = false;
             _isExcluded = false;
-            _tokens.Clear();
             _tree = new(_rule);
             _hasPassedWithMethod = false;
         }
@@ -134,6 +126,9 @@ namespace Interpreter_lib.Parser
         // Match exactly once
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.Once()
         {
+            if (_tokens.Count == 0)
+                return this; 
+
             if (_currentTokenToMatch != null && _tokens[_currentTokenIndex].Type == _currentTokenToMatch)
             {
                 AddToTree(_tokens[_currentTokenIndex]);
@@ -180,6 +175,9 @@ namespace Interpreter_lib.Parser
         // Match at least once
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtLeastOnce()
         {
+            if (_tokens.Count == 0)
+                return this;
+
             bool ok = false;
 
             if (_currentTokenToMatch != null)
@@ -232,6 +230,9 @@ namespace Interpreter_lib.Parser
         // Match zero or one time at most
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtMostOnce()
         {
+            if (_tokens.Count == 0)
+                return this;
+
             if (_currentTokenToMatch != null)
             {
                 if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
@@ -289,6 +290,9 @@ namespace Interpreter_lib.Parser
         // Match zero or more times
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.ZeroOrMore()
         {
+            if (_tokens.Count == 0)
+                return this;
+
             if (_currentTokenToMatch != null)
             {
                 while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
