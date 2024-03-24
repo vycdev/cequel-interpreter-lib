@@ -44,7 +44,7 @@ namespace Interpreter_lib.Tokenizer
         public string FOR { get; set; } = "for";
     }
 
-    public class Token
+    public class Token : ICloneable
     {
         public EToken Type { get; private set; }
         public string Value { get; private set; }
@@ -53,6 +53,11 @@ namespace Interpreter_lib.Tokenizer
         {
             Type = type;
             Value = value;
+        }
+
+        public object Clone()
+        {
+            return new Token(Type, Value);
         }
     }
 }

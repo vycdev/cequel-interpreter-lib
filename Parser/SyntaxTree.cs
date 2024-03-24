@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Parser
 {
-    public class Node
+    public class Node : ICloneable
     {
         private ERule _rule;
         private List<Node> _nodes;
@@ -28,8 +28,9 @@ namespace Interpreter_lib.Parser
 
         public List<Node> GetNodes()
         {
-            return _nodes;
+            return new List<Node>(_nodes.Select(n => (Node)n.Clone())); 
         }
+
         public List<Token> GetTokens()
         {
             return _tokens;
@@ -37,12 +38,12 @@ namespace Interpreter_lib.Parser
 
         public void Add(Node node)
         {
-            _nodes.Add(node);
+            _nodes.Add((Node)node.Clone());
         }
 
         public void Add(List<Node> nodes)
         {
-            _nodes.AddRange(nodes);
+            _nodes.AddRange(nodes.Select(n => (Node)n.Clone()));
         }
 
         public void Add(Token token)
@@ -53,6 +54,15 @@ namespace Interpreter_lib.Parser
         public void Add(List<Token> tokens)
         {
             _tokens.AddRange(tokens);
+        }
+
+        public object Clone()
+        {
+            Node node = new(_rule);
+            node._nodes = new(_nodes);
+            node._tokens = new(_tokens);
+
+            return node;
         }
     }
 }
