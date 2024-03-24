@@ -8,20 +8,20 @@ namespace Interpreter_lib.Parser
 
         // Arithmetic expressions
         ARITHMETIC_EXPRESSION,
-        EXPRESSION_ATOM, ARITHMETIC_EXPRESSION_MIDDLE,
+        EXPRESSION_ATOM, SUBSEQUENT_EXPRESSION,
 
-        SUM, SUBSEQUENT_SUM, SUBSTRACT, MULTIPLY, DIVIDE, POWER, MODULUS,
+        SUM, SUBSEQUENT_SUM, SUBTRACT, SUBSEQUENT_SUBTRACT, MULTIPLY, SUBSEQUENT_MULTIPLY, DIVIDE, SUBSEQUENT_DIVIDE, POWER, SUBSEQUENT_POWER, MODULUS, SUBSEQUENT_MODULUS,
         FLOOR,
-     
+
         // Logical expressions
         LOGICAL_EXPRESSION,
     }
 
-    public class Rule : IRuleConfiguration, 
-        IRuleContinuationConfiguration, 
-        IRuleFrequencyConfiguration, 
-        IRuleTokenConfiguration, 
-        IRuleRuleConfiguration, 
+    public class Rule : IRuleConfiguration,
+        IRuleContinuationConfiguration,
+        IRuleFrequencyConfiguration,
+        IRuleTokenConfiguration,
+        IRuleRuleConfiguration,
         ICloneable
     {
         // Rules
@@ -29,11 +29,12 @@ namespace Interpreter_lib.Parser
 
         // Used for traversing the tokens array.  
         public int _currentTokenIndex { get; private set; } = 0;
-        private EToken? _currentTokenToMatch;
-        private ERule? _currentRuleToMatch;
+        private List<EToken> _currentTokensToMatch;
+        private List<ERule> _currentRulesToMatch;
         private bool _hasMatchedW;
         private bool _isWSide = false;
         private bool _isTSide = false;
+        private bool _lastToMatch = false; 
 
         // Used for additional behavior when creating the nodes.
         private bool _isHoisted = false;
@@ -54,11 +55,13 @@ namespace Interpreter_lib.Parser
             _tree = new(_rule);
             _tokens = new();
             _hasMatchedW = false;
+            _currentTokensToMatch = new();
+            _currentRulesToMatch = new();
         }
 
         public Node Evaluate(List<Token> tokens)
         {
-            this.Reset();
+            Reset();
             _tokens = tokens;
             _definition(this);
 
@@ -74,17 +77,20 @@ namespace Interpreter_lib.Parser
             _hasMatchedW = false;
             _isWSide = false;
             _isTSide = false;
+            _currentTokensToMatch.Clear();
+            _currentRulesToMatch.Clear();
         }
 
         #region WITH 
 
         // Match the first token in the sequence
-        IRuleTokenConfiguration IRuleConfiguration.WithT(EToken token)
+        IRuleTokenConfiguration IRuleConfiguration.WithT(params EToken[] tokens)
         {
             _isExcluded = false;
             _hasMatchedW = false;
-            _currentTokenToMatch = token;
-            _currentRuleToMatch = null;
+            _currentRulesToMatch.Clear();
+            _currentTokensToMatch.Clear();
+            _currentTokensToMatch.AddRange(tokens);
             _isWSide = true;
             _isTSide = false;
 
@@ -92,12 +98,13 @@ namespace Interpreter_lib.Parser
         }
 
         // Match the first rule in the sequence
-        IRuleRuleConfiguration IRuleConfiguration.WithR(ERule rule)
+        IRuleRuleConfiguration IRuleConfiguration.WithR(params ERule[] rules)
         {
             _isHoisted = false;
             _hasMatchedW = false;
-            _currentRuleToMatch = rule;
-            _currentTokenToMatch = null;
+            _currentRulesToMatch.Clear();
+            _currentTokensToMatch.Clear();
+            _currentRulesToMatch.AddRange(rules);
             _isWSide = true;
             _isTSide = false;
 
@@ -107,22 +114,24 @@ namespace Interpreter_lib.Parser
         #endregion
 
         #region THEN
-        IRuleTokenConfiguration IRuleContinuationConfiguration.ThenT(EToken token)
+        IRuleTokenConfiguration IRuleContinuationConfiguration.ThenT(params EToken[] token)
         {
             _isExcluded = false;
-            _currentTokenToMatch = token;
-            _currentRuleToMatch = null;
+            _currentRulesToMatch.Clear();
+            _currentTokensToMatch.Clear();
+            _currentTokensToMatch.AddRange(token);
             _isWSide = false;
             _isTSide = true;
 
             return this;
         }
 
-        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(ERule rule)
+        IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(params ERule[] rule)
         {
             _isHoisted = false;
-            _currentRuleToMatch = rule;
-            _currentTokenToMatch = null;
+            _currentRulesToMatch.Clear();
+            _currentTokensToMatch.Clear();
+            _currentRulesToMatch.AddRange(rule);
             _isWSide = false;
             _isTSide = true;
 
@@ -140,24 +149,36 @@ namespace Interpreter_lib.Parser
                 return this;
 
             if (_isTSide && !_hasMatchedW)
-                return this; 
+                return this;
 
-            if (_currentTokenToMatch != null && _tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+            if (_currentTokensToMatch.Count() > 0)
             {
-                AddToTree(_tokens[_currentTokenIndex]);
-                _currentTokenIndex++;
-                
-                if(_isWSide)
-                    _hasMatchedW = true;
-            }
-            else if (_currentRuleToMatch != null)
-            {
-                List<Rule> currentRules = GetRules(_currentRuleToMatch.Value);
-                Node node;
-                var ok = false; 
-                
-                foreach (Rule currentRule in currentRules)
+                foreach (EToken token in _currentTokensToMatch)
                 {
+                    if (_tokens[_currentTokenIndex].Type == token)
+                    {
+                        AddToTree(_tokens[_currentTokenIndex]);
+                        _currentTokenIndex++;
+
+                        if (_isWSide)
+                            _hasMatchedW = true;
+
+                        break;
+                    }
+                }
+            }
+            else if (_currentRulesToMatch.Count() > 0)
+            {
+                List<Rule> currentRules = GetRules(_currentRulesToMatch);
+                Node node;
+                var ok = false;
+
+                for (int i = 0; i < currentRules.Count; i++)
+                {
+                    Rule currentRule = currentRules[i];
+                    if(i == currentRules.Count - 1)
+                        currentRule._lastToMatch = true;
+
                     if (_currentTokenIndex > 0)
                         node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
                     else
@@ -172,15 +193,11 @@ namespace Interpreter_lib.Parser
                     }
                 }
 
-                if (_hasMatchedW && !ok)
+                if (_hasMatchedW && !ok && _lastToMatch)
                     throw new ParsingException(this, "Rule has matched less than once.");
-                
-                if(ok && _isWSide)
+
+                if (ok && _isWSide)
                     _hasMatchedW = true;
-            }
-            else if (_hasMatchedW)
-            {
-                throw new ParsingException(this, "Token has matched less than once.");
             }
 
             return this;
@@ -197,26 +214,166 @@ namespace Interpreter_lib.Parser
 
             bool ok = false;
 
-            if (_currentTokenToMatch != null)
+            if (_currentTokensToMatch.Count() > 0)
             {
-                while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
+                foreach (EToken token in _currentTokensToMatch)
                 {
-                    AddToTree(_tokens[_currentTokenIndex]);
-                    _currentTokenToMatch++;
-                    ok = true;
+                    while (_tokens[_currentTokenIndex].Type == token)
+                    {
+                        AddToTree(_tokens[_currentTokenIndex]);
+                        _currentTokenIndex++;
+                        ok = true;
+                    }
                 }
 
-                if (_hasMatchedW && !ok)
+                if (ok && _isWSide)
+                    _hasMatchedW = true;
+                 
+                if (_hasMatchedW && !ok && _lastToMatch)
                     throw new ParsingException(this, "Token has matched less than once.");
-                
+            }
+            else if (_currentRulesToMatch.Count() > 0)
+            {
+                List<Rule> currentRules = GetRules(_currentRulesToMatch);
+                Node node;
+
+                for (int i = 0; i < currentRules.Count; i++)
+                {
+                    Rule currentRule = currentRules[i];
+                    if (i == currentRules.Count - 1)
+                        currentRule._lastToMatch = true;
+
+                    do
+                    {
+                        if (_currentTokenIndex > 0)
+                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                        else
+                            node = currentRule.Evaluate(_tokens);
+
+                        if (!node.IsEmpty)
+                        {
+                            AddToTree(node);
+                            _currentTokenIndex += currentRule._currentTokenIndex;
+                            ok = true;
+                        }
+                    } while (!node.IsEmpty);
+                }
+
+                if (_hasMatchedW && !ok && _lastToMatch)
+                    throw new ParsingException(this, "Rule has matched less than once.");
+
+                if (ok && _isWSide)
+                    _hasMatchedW = true;
+            }
+
+            return this;
+        }
+
+        // Match zero or one time at most
+        IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtMostOnce()
+        {
+            if (_tokens.Count == 0)
+                return this;
+
+            if (_isTSide && !_hasMatchedW)
+                return this;
+
+            if (_currentTokensToMatch.Count() > 0)
+            {
+                var ok = false;
+                foreach (EToken token in _currentTokensToMatch)
+                {
+                    if (_tokens[_currentTokenIndex].Type == token)
+                    {
+                        AddToTree(_tokens[_currentTokenIndex]);
+                        _currentTokenIndex++;
+                        ok = true;
+
+                        if (_tokens[_currentTokenIndex].Type == token && _hasMatchedW && _lastToMatch)
+                            throw new ParsingException(this, "Token has matched more than once.");
+                    }
+
+                    if (ok)
+                        break;
+                }
+
                 if(ok && _isWSide)
                     _hasMatchedW = true;
             }
-            else if (_currentRuleToMatch != null)
+            else if (_currentRulesToMatch.Count() > 0)
             {
-                List<Rule> currentRules = GetRules(_currentRuleToMatch.Value);
+                List<Rule> currentRules = GetRules(_currentRulesToMatch);
                 Node node;
+                var ok = false;
+                foreach (Rule currentRule in currentRules)
+                {
+                    if (_currentTokenIndex > 0)
+                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                    else
+                        node = currentRule.Evaluate(_tokens);
 
+                    if (!node.IsEmpty)
+                    {
+                        AddToTree(node);
+                        _currentTokenIndex += currentRule._currentTokenIndex;
+                        ok = true;
+                        break;
+                    }
+                }
+
+                if (ok)
+                {
+                    foreach (Rule currentRule in currentRules)
+                    {
+                        if (_currentTokenIndex > 0)
+                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
+                        else
+                            node = currentRule.Evaluate(_tokens);
+
+                        if (!node.IsEmpty && _hasMatchedW && _lastToMatch)
+                        {
+                            throw new ParsingException(this, "Rule has matched more than once.");
+                        }
+                    }
+                }
+
+                if (ok && _isWSide)
+                    _hasMatchedW = true;
+            }
+
+            return this;
+        }
+
+        // Match zero or more times
+        IRuleContinuationConfiguration IRuleFrequencyConfiguration.ZeroOrMore()
+        {
+            if (_tokens.Count == 0)
+                return this;
+
+            if (_isTSide && !_hasMatchedW)
+                return this;
+
+            if (_currentTokensToMatch.Count() > 0)
+            {
+                var ok = false; 
+                foreach (EToken token in _currentTokensToMatch)
+                {
+                    while (_tokens[_currentTokenIndex].Type == token)
+                    {
+                        AddToTree(_tokens[_currentTokenIndex]);
+                        _currentTokenIndex++;
+                        ok = true;
+                    }
+                }
+
+                if (ok && _isWSide)
+                    _hasMatchedW = true;
+            }
+            else if (_currentRulesToMatch.Count() > 0)
+            {
+                List<Rule> currentRules = GetRules(_currentRulesToMatch);
+                Node node;
+                var ok = false; 
                 foreach (Rule currentRule in currentRules)
                 {
                     do
@@ -235,122 +392,9 @@ namespace Interpreter_lib.Parser
                     } while (!node.IsEmpty);
                 }
 
-                if (_hasMatchedW && !ok)
-                    throw new ParsingException(this, "Rule has matched less than once.");
-                
-                if(ok && _isWSide)
+                if (ok && _isWSide)
                     _hasMatchedW = true;
             }
-
-            return this;
-        }
-
-        // Match zero or one time at most
-        IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtMostOnce()
-        {
-            if (_tokens.Count == 0)
-                return this;
-
-            if (_isTSide && !_hasMatchedW)
-                return this;
-
-            if (_currentTokenToMatch != null)
-            {
-                if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
-                {
-                    AddToTree(_tokens[_currentTokenIndex]);
-                    _currentTokenToMatch++;
-
-                    if (_tokens[_currentTokenIndex].Type == _currentTokenToMatch && _hasMatchedW)
-                        throw new ParsingException(this, "Token has matched more than once.");
-                }
-            }
-            else if (_currentRuleToMatch != null)
-            {
-                List<Rule> currentRules = GetRules(_currentRuleToMatch.Value);
-                Node node;
-                var ok = false; 
-                foreach (Rule currentRule in currentRules)
-                {
-                    if (_currentTokenIndex > 0)
-                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                    else
-                        node = currentRule.Evaluate(_tokens);
-
-                    if (!node.IsEmpty)
-                    {
-                        AddToTree(node);
-                        _currentTokenIndex += currentRule._currentTokenIndex;
-                        ok = true;
-                        break;
-                    }
-                }
-
-                if(ok)
-                {
-                    foreach (Rule currentRule in currentRules)
-                    {
-                        if (_currentTokenIndex > 0)
-                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                        else
-                            node = currentRule.Evaluate(_tokens);
-
-                        if (!node.IsEmpty && _hasMatchedW)
-                        {
-                            throw new ParsingException(this, "Rule has matched more than once.");
-                        }
-                    }
-                }
-            }
-
-            if(_isWSide)
-                _hasMatchedW = true;
-
-            return this;
-        }
-
-        // Match zero or more times
-        IRuleContinuationConfiguration IRuleFrequencyConfiguration.ZeroOrMore()
-        {
-            if (_tokens.Count == 0)
-                return this;
-
-            if (_isTSide && !_hasMatchedW)
-                return this;
-
-            if (_currentTokenToMatch != null)
-            {
-                while (_tokens[_currentTokenIndex].Type == _currentTokenToMatch)
-                {
-                    AddToTree(_tokens[_currentTokenIndex]);
-                    _currentTokenToMatch++;
-                }
-            }
-            else if (_currentRuleToMatch != null)
-            {
-                List<Rule> currentRules = GetRules(_currentRuleToMatch.Value);
-                Node node;
-
-                foreach (Rule currentRule in currentRules)
-                {
-                    do
-                    {
-                        if (_currentTokenIndex > 0)
-                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                        else
-                            node = currentRule.Evaluate(_tokens);
-
-                        if (!node.IsEmpty)
-                        {
-                            AddToTree(node);
-                            _currentTokenIndex += currentRule._currentTokenIndex;
-                        }
-                    } while (!node.IsEmpty);
-                }
-            }
-
-            if(_isWSide)
-                _hasMatchedW = true;
 
             return this;
         }
@@ -388,7 +432,7 @@ namespace Interpreter_lib.Parser
 
         private void AddToTree(Node node)
         {
-            if (_isHoisted)
+            if (_isHoisted || node.GetRule() == _rule)
             {
                 _tree.Add(node.GetNodes());
                 _tree.Add(node.GetTokens());
@@ -411,9 +455,15 @@ namespace Interpreter_lib.Parser
             return new List<Rule>(_rules.Where(r => r._rule == rule).Select(r => (Rule)r.Clone()).ToList());
         }
 
-        public static Rule GetRule(ERule rule)
+        public static List<Rule> GetRules(List<ERule> rules)
         {
-            return (Rule)_rules.First(r => r._rule == rule).Clone();
+            var list = new List<Rule>();
+            foreach (ERule rule in rules)
+            {
+                list.AddRange(_rules.Where(r => r._rule == rule).Select(r => (Rule)r.Clone()).ToList());
+            }
+
+            return list;
         }
 
         public static void AddRule(Rule rule)

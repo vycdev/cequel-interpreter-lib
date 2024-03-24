@@ -12,14 +12,14 @@ namespace Interpreter_lib.Parser
 
     public interface IRuleConfiguration
     {
-        IRuleTokenConfiguration WithT(EToken token);
-        IRuleRuleConfiguration WithR(ERule rule);
+        IRuleTokenConfiguration WithT(params EToken[] token);
+        IRuleRuleConfiguration WithR(params ERule[] rule);
     }
 
     public interface IRuleContinuationConfiguration
     {
-        IRuleTokenConfiguration ThenT(EToken token);
-        IRuleRuleConfiguration ThenR(ERule rule);
+        IRuleTokenConfiguration ThenT(params EToken[] token);
+        IRuleRuleConfiguration ThenR(params ERule[] rule);
     }
 
     public interface IRuleFrequencyConfiguration
