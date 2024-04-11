@@ -89,7 +89,7 @@ namespace Interpreter_lib.Parser
             // Unary Operations
             Rule.AddRule(new Rule(ERule.FLOOR, o => o
                 .WithT(EToken.LEFT_SQUARE_BRACKET).Exclude().Once()
-                .ThenR(ERule.EXPRESSION).Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
                 .ThenT(EToken.RIGHT_SQUARE_BRACKET).Exclude().Once()));
         }
 
