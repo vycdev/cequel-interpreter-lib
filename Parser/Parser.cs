@@ -1,4 +1,5 @@
 ﻿using Interpreter_lib.Tokenizer;
+using System.Reflection;
 
 namespace Interpreter_lib.Parser
 {
@@ -34,29 +35,50 @@ namespace Interpreter_lib.Parser
 
             // Expression
             Rule.AddRule(new Rule(ERule.EXPRESSION, o => o
-                .WithR(ERule.ADDITIVE).Once()));
+                .WithR(ERule.SUM).Once()));
 
-            // Binary Operations 
-            Rule.AddRule(new Rule(ERule.ADDITIVE, o => o
-                .WithR(ERule.MULTIPLICATIVE).Once()
-                .ThenR(ERule.SUBSEQUENT_ADDITIVE).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_ADDITIVE, o => o
-                .WithT(EToken.PLUS, EToken.MINUS).Once()
-                .ThenR(ERule.MULTIPLICATIVE).Once()));
-
-            Rule.AddRule(new Rule(ERule.MULTIPLICATIVE, o => o
-                .WithR(ERule.EXPONENTIAL).Once()
-                .ThenR(ERule.SUBSEQUENT_MULTIPLICATIVE).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MULTIPLICATIVE, o => o
-                .WithT(EToken.MULTIPLY, EToken.DIVIDE, EToken.MODULUS).Once()
-                .ThenR(ERule.EXPONENTIAL).Once()));
-
-            Rule.AddRule(new Rule(ERule.EXPONENTIAL, o => o
-                .WithR(ERule.PRIMARY).Hoist().Once()
-                .ThenR(ERule.SUBSEQUENT_EXPONENTIAL).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_EXPONENTIAL, o => o
-                .WithT(EToken.POWER).Once()
-                .ThenR(ERule.PRIMARY).Hoist().Once()));
+            // SUM, SUBSEQUENT_SUM, 
+            Rule.AddRule(new Rule(ERule.SUM, o => o
+                .WithR(ERule.SUBTRACT).Once()
+                .ThenR(ERule.SUBSEQUENT_SUM).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_SUM, o => o
+                .WithT(EToken.PLUS).Exclude().Once()
+                .ThenR(ERule.SUBTRACT).Once()));
+            // SUBTRACT, SUBSEQUENT_SUBTRACT, 
+            Rule.AddRule(new Rule(ERule.SUBTRACT, o => o
+                .WithR(ERule.MULTIPLY).Once()
+                .ThenR(ERule.SUBSEQUENT_MULTIPLY).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MULTIPLY, o => o
+                .WithT(EToken.MINUS).Exclude().Once()
+                .ThenR(ERule.MULTIPLY).Once()));
+            // MULTIPLY, SUBSEQUENT_MULTIPLY, 
+            Rule.AddRule(new Rule(ERule.MULTIPLY, o => o
+                .WithR(ERule.DIVIDE).Once()
+                .ThenR(ERule.SUBSEQUENT_MULTIPLY).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MULTIPLY, o => o
+                .WithT(EToken.MULTIPLY).Exclude().Once()
+                .ThenR(ERule.DIVIDE).Once()));
+            // DIVIDE, SUBSEQUENT_DIVIDE,
+            Rule.AddRule(new Rule(ERule.DIVIDE, o => o
+                .WithR(ERule.MODULUS).Once()
+                .ThenR(ERule.SUBSEQUENT_DIVIDE).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_DIVIDE, o => o
+                .WithT(EToken.DIVIDE).Exclude().Once()
+                .ThenR(ERule.MODULUS).Once()));
+            // MODULUS, SUBSEQUENT_MODULUS,
+            Rule.AddRule(new Rule(ERule.MODULUS, o => o
+                .WithR(ERule.POWER).Once()
+                .ThenR(ERule.SUBSEQUENT_MODULUS).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MODULUS, o => o
+                .WithT(EToken.MODULUS).Exclude().Once()
+                .ThenR(ERule.POWER).Once()));
+            // POWER, SUBSEQUENT_POWER,
+            Rule.AddRule(new Rule(ERule.POWER, o => o
+                .WithR(ERule.PRIMARY).Once()
+                .ThenR(ERule.SUBSEQUENT_POWER).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_POWER, o => o
+                .WithT(EToken.POWER).Exclude().Once()
+                .ThenR(ERule.PRIMARY).Once()));
 
             // Unary Operations
             Rule.AddRule(new Rule(ERule.FLOOR, o => o

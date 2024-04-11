@@ -5,20 +5,18 @@ namespace Interpreter_lib.Parser
 {
     public enum ERule
     {
-        GROUP,
-
-        // Arithmetic expressions
         EXPRESSION,
-        PRIMARY, SUBSEQUENT_EXPRESSION,
+        PRIMARY,
 
-        ADDITIVE, 
-        SUBSEQUENT_ADDITIVE,
-        MULTIPLICATIVE,
-        SUBSEQUENT_MULTIPLICATIVE,
-        EXPONENTIAL, 
-        SUBSEQUENT_EXPONENTIAL,
-
+        SUM, SUBSEQUENT_SUM, 
+        SUBTRACT, SUBSEQUENT_SUBTRACT, 
+        MULTIPLY, SUBSEQUENT_MULTIPLY, 
+        DIVIDE, SUBSEQUENT_DIVIDE, 
+        MODULUS, SUBSEQUENT_MODULUS,
+        POWER, SUBSEQUENT_POWER, 
         FLOOR,
+        
+        GROUP,
     }
 
     public class Rule : IRuleConfiguration,
