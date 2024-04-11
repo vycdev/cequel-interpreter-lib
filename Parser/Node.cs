@@ -11,6 +11,7 @@ namespace Interpreter_lib.Parser
     {
         private ERule _rule;
         private List<ISyntaxNode> _syntaxNodes; 
+
         public bool IsEmpty => _syntaxNodes.Count == 0;
         public int TokenCount => _syntaxNodes.Count(isToken) + _syntaxNodes.Where(isNode).Aggregate(0, (acc, n) => acc + ((Node)n).TokenCount);
         public int NodeCount => 1 + _syntaxNodes.Where(isNode).Aggregate(0, (acc, n) => acc + ((Node)n).NodeCount);
