@@ -60,5 +60,10 @@ namespace Interpreter_lib.Tokenizer
         {
             return new Token(Type, Value);
         }
+
+        public string Print()
+        {
+            return $"{Type}: {Value}";
+        }
     }
 }

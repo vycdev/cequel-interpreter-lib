@@ -74,5 +74,10 @@ namespace Interpreter_lib.Parser
 
             return node;
         }
+
+        public string Print()
+        {
+            return $"{_rule}";
+        }
     }
 }
