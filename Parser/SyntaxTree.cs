@@ -36,41 +36,20 @@ namespace Interpreter_lib.Parser
             return _syntaxNodes.Select(n => (ISyntaxNode)n.Clone()).ToList();
         }
 
-        public List<Node> GetNodes()
+        public void Add(ISyntaxNode node)
         {
-            return _syntaxNodes.Where(isNode).Select(n => (Node)((Node)n).Clone()).ToList(); 
+            _syntaxNodes.Add((ISyntaxNode)node.Clone());
         }
 
-        public List<Token> GetTokens()
+        public void Add(List<ISyntaxNode> nodes)
         {
-            return _syntaxNodes.Where(isToken).Select(t => (Token)t).ToList();
-        }
-
-        public void Add(Node node)
-        {
-            _syntaxNodes.Add((Node)node.Clone());
-        }
-
-        public void Add(List<Node> nodes)
-        {
-            _syntaxNodes.AddRange(nodes.Select(n => (Node)n.Clone()));
-        }
-
-        public void Add(Token token)
-        {
-            _syntaxNodes.Add(token);
-        }
-
-        public void Add(List<Token> tokens)
-        {
-            _syntaxNodes.AddRange(tokens);
+            _syntaxNodes.AddRange(nodes.Select(n => (ISyntaxNode)n.Clone()));
         }
 
         public object Clone()
         {
             Node node = new(_rule);
-            List<ISyntaxNode> nodes = new();
-            node._syntaxNodes.AddRange(_syntaxNodes.Select(n => (ISyntaxNode)n.Clone()));
+            node.Add(_syntaxNodes);
 
             return node;
         }

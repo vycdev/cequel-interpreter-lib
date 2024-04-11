@@ -447,8 +447,7 @@ namespace Interpreter_lib.Parser
         {
             if ((_isHoisted || node.GetRule() == _rule || (node.TokenCount == 1 && node.NodeCount == 1) || (node.TopNodeCount == 1 && node.TopTokenCount == 0)) && !_isHoistImmune)
             {
-                _tree.Add(node.GetNodes());
-                _tree.Add(node.GetTokens());
+                _tree.Add(node.GetSyntaxNodes());
             }
             else
             {
