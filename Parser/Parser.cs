@@ -1,11 +1,4 @@
 ﻿using Interpreter_lib.Tokenizer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Interpreter_lib.Parser
 {
@@ -23,99 +16,58 @@ namespace Interpreter_lib.Parser
             _tokens = tokens;
             _tree = new();
 
-            // Add rules to the tree
-            //Rule.AddRule(new Rule(ERule.ARITHMETIC_EXPRESSION, o => o
-            //    .WithR(ERule.EXPRESSION_ATOM).Once()
-            //    .ThenR(ERule.SUBSEQUENT_EXPRESSION).AtLeastOnce()));
-
             // Grouping
             Rule.AddRule(new Rule(ERule.GROUP, o => o
                 .WithT(EToken.LEFT_PARENTHESIS).Exclude().Once()
-                .ThenR(ERule.ARITHMETIC_EXPRESSION).Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
                 .ThenT(EToken.RIGHT_PARENTHESIS).Exclude().Once()));
 
-            // Atoms
-            Rule.AddRule(new Rule(ERule.EXPRESSION_ATOM, o => o
+            // Primary
+            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
                 .WithT(EToken.NUMBER).Once()));
-            Rule.AddRule(new Rule(ERule.EXPRESSION_ATOM, o => o
+            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
                 .WithT(EToken.IDENTIFIER).Once()));
-            Rule.AddRule(new Rule(ERule.EXPRESSION_ATOM, o => o
+            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
                 .WithR(ERule.GROUP).Hoist().Once()));            
-            Rule.AddRule(new Rule(ERule.EXPRESSION_ATOM, o => o
-                .WithR(ERule.FLOOR).Once()));
+            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
+                .WithR(ERule.FLOOR).NeverHoist().Once()));
 
-            // Arithmetic expression
-            //Rule.AddRule(new Rule(ERule.ARITHMETIC_EXPRESSION, o => o
-            //    .WithR(ERule.SUM, ERule.SUBTRACT, ERule.MULTIPLY, ERule.DIVIDE, ERule.POWER, ERule.MODULUS).Once()));
+            // Expression
+            Rule.AddRule(new Rule(ERule.EXPRESSION, o => o
+                .WithR(ERule.ADDITIVE).Once()));
 
-            Rule.AddRule(new Rule(ERule.ARITHMETIC_EXPRESSION, o => o
-                    .WithR(ERule.EXPRESSION_ATOM).Hoist().Once()
-                    .ThenR(ERule.SUBSEQUENT_SUM,
-                            ERule.SUBSEQUENT_SUBTRACT,
-                            ERule.SUBSEQUENT_MULTIPLY,
-                            ERule.SUBSEQUENT_DIVIDE,
-                            ERule.SUBSEQUENT_POWER,
-                            ERule.MODULUS).AtLeastOnce()));
+            // Binary Operations 
+            Rule.AddRule(new Rule(ERule.ADDITIVE, o => o
+                .WithR(ERule.MULTIPLICATIVE).Once()
+                .ThenR(ERule.SUBSEQUENT_ADDITIVE).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_ADDITIVE, o => o
+                .WithT(EToken.PLUS, EToken.MINUS).Once()
+                .ThenR(ERule.MULTIPLICATIVE).Once()));
 
-            // Expressions
-            Rule.AddRule(new Rule(ERule.SUM, o => o
-                    .WithR(ERule.EXPRESSION_ATOM).Hoist().Once()
-                    .ThenR(ERule.SUBSEQUENT_SUM).Hoist().AtLeastOnce()));
+            Rule.AddRule(new Rule(ERule.MULTIPLICATIVE, o => o
+                .WithR(ERule.EXPONENTIAL).Once()
+                .ThenR(ERule.SUBSEQUENT_MULTIPLICATIVE).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MULTIPLICATIVE, o => o
+                .WithT(EToken.MULTIPLY, EToken.DIVIDE, EToken.MODULUS).Once()
+                .ThenR(ERule.EXPONENTIAL).Once()));
 
-            Rule.AddRule(new Rule(ERule.SUBTRACT, o => o
-                    .WithR(ERule.EXPRESSION_ATOM).Hoist().Once()
-                    .ThenR(ERule.SUBSEQUENT_SUBTRACT).Hoist().AtLeastOnce()));
-            
-            Rule.AddRule(new Rule(ERule.MULTIPLY, o => o
-                    .WithR(ERule.EXPRESSION_ATOM).Hoist().Once()
-                    .ThenR(ERule.SUBSEQUENT_MULTIPLY).Hoist().AtLeastOnce()));
-            
-            Rule.AddRule(new Rule(ERule.DIVIDE, o => o
-                    .WithR(ERule.EXPRESSION_ATOM).Hoist().Once()
-                    .ThenR(ERule.SUBSEQUENT_DIVIDE).Hoist().AtLeastOnce()));
-            
-            Rule.AddRule(new Rule(ERule.POWER, o => o
-                    .WithR(ERule.EXPRESSION_ATOM).Hoist().Once()
-                    .ThenR(ERule.SUBSEQUENT_POWER).Hoist().AtLeastOnce()));
-            
-            Rule.AddRule(new Rule(ERule.MODULUS, o => o
-                    .WithR(ERule.EXPRESSION_ATOM).Hoist().Once()
-                    .ThenR(ERule.SUBSEQUENT_MODULUS).Hoist().AtLeastOnce()));
+            Rule.AddRule(new Rule(ERule.EXPONENTIAL, o => o
+                .WithR(ERule.PRIMARY).Hoist().Once()
+                .ThenR(ERule.SUBSEQUENT_EXPONENTIAL).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_EXPONENTIAL, o => o
+                .WithT(EToken.POWER).Once()
+                .ThenR(ERule.PRIMARY).Hoist().Once()));
 
+            // Unary Operations
             Rule.AddRule(new Rule(ERule.FLOOR, o => o
-                    .WithT(EToken.LEFT_SQUARE_BRACKET).Exclude().Once()
-                    .ThenR(ERule.ARITHMETIC_EXPRESSION).Hoist().Once()
-                    .ThenT(EToken.RIGHT_SQUARE_BRACKET).Exclude().Once()));
-
-            // Subsequent expressions
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_SUM, o => o
-                    .WithT(EToken.PLUS).Exclude().Once()
-                    .ThenR(ERule.EXPRESSION_ATOM).Hoist().Once()));
-
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_SUBTRACT, o => o
-                    .WithT(EToken.MINUS).Exclude().Once()
-                    .ThenR(ERule.EXPRESSION_ATOM).Hoist().Once()));
-
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MULTIPLY, o => o
-                    .WithT(EToken.MULTIPLY).Exclude().Once()
-                    .ThenR(ERule.EXPRESSION_ATOM).Hoist().Once()));
-
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_DIVIDE, o => o
-                    .WithT(EToken.DIVIDE).Exclude().Once()
-                    .ThenR(ERule.EXPRESSION_ATOM).Hoist().Once()));
-
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MODULUS, o => o
-                    .WithT(EToken.MODULUS).Exclude().Once()
-                    .ThenR(ERule.EXPRESSION_ATOM).Hoist().Once()));
-
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_POWER, o => o
-                    .WithT(EToken.POWER).Exclude().Once()
-                    .ThenR(ERule.EXPRESSION_ATOM).Hoist().Once()));
+                .WithT(EToken.LEFT_SQUARE_BRACKET).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).Once()
+                .ThenT(EToken.RIGHT_SQUARE_BRACKET).Exclude().Once()));
         }
 
         public void Parse()
         {
-            List<Rule> rules = Rule.GetRules(ERule.ARITHMETIC_EXPRESSION);
+            List<Rule> rules = Rule.GetRules(ERule.EXPRESSION);
             Node node;
             foreach (Rule rule in rules)
             {

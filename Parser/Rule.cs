@@ -1,4 +1,5 @@
 ﻿using Interpreter_lib.Tokenizer;
+using System.Numerics;
 
 namespace Interpreter_lib.Parser
 {
@@ -7,14 +8,17 @@ namespace Interpreter_lib.Parser
         GROUP,
 
         // Arithmetic expressions
-        ARITHMETIC_EXPRESSION,
-        EXPRESSION_ATOM, SUBSEQUENT_EXPRESSION,
+        EXPRESSION,
+        PRIMARY, SUBSEQUENT_EXPRESSION,
 
-        SUM, SUBSEQUENT_SUM, SUBTRACT, SUBSEQUENT_SUBTRACT, MULTIPLY, SUBSEQUENT_MULTIPLY, DIVIDE, SUBSEQUENT_DIVIDE, POWER, SUBSEQUENT_POWER, MODULUS, SUBSEQUENT_MODULUS,
+        ADDITIVE, 
+        SUBSEQUENT_ADDITIVE,
+        MULTIPLICATIVE,
+        SUBSEQUENT_MULTIPLICATIVE,
+        EXPONENTIAL, 
+        SUBSEQUENT_EXPONENTIAL,
+
         FLOOR,
-
-        // Logical expressions
-        LOGICAL_EXPRESSION,
     }
 
     public class Rule : IRuleConfiguration,
@@ -38,6 +42,7 @@ namespace Interpreter_lib.Parser
 
         // Used for additional behavior when creating the nodes.
         private bool _isHoisted = false;
+        private bool _isHoistImmune = false;
         private bool _isExcluded = false;
 
         // Used for defining the rule.
@@ -72,6 +77,7 @@ namespace Interpreter_lib.Parser
         {
             _currentTokenIndex = 0;
             _isHoisted = false;
+            _isHoistImmune = false;
             _isExcluded = false;
             _tree = new(_rule);
             _hasMatchedW = false;
@@ -101,6 +107,7 @@ namespace Interpreter_lib.Parser
         IRuleRuleConfiguration IRuleConfiguration.WithR(params ERule[] rules)
         {
             _isHoisted = false;
+            _isHoistImmune = false;
             _hasMatchedW = false;
             _currentRulesToMatch.Clear();
             _currentTokensToMatch.Clear();
@@ -129,6 +136,7 @@ namespace Interpreter_lib.Parser
         IRuleRuleConfiguration IRuleContinuationConfiguration.ThenR(params ERule[] rule)
         {
             _isHoisted = false;
+            _isHoistImmune = false;
             _currentRulesToMatch.Clear();
             _currentTokensToMatch.Clear();
             _currentRulesToMatch.AddRange(rule);
@@ -170,7 +178,7 @@ namespace Interpreter_lib.Parser
             else if (_currentRulesToMatch.Count() > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
-                Node node;
+                Node node; 
                 var ok = false;
 
                 for (int i = 0; i < currentRules.Count; i++)
@@ -185,10 +193,10 @@ namespace Interpreter_lib.Parser
                         node = currentRule.Evaluate(_tokens);
 
                     if (!node.IsEmpty)
-                    {
+                {
                         AddToTree(node);
                         _currentTokenIndex += currentRule._currentTokenIndex;
-                        ok = true;
+                    ok = true;
                         break;
                     }
                 }
@@ -421,6 +429,13 @@ namespace Interpreter_lib.Parser
             return this;
         }
 
+        IRuleRuleConfiguration IRuleRuleConfiguration.NeverHoist()
+        {
+            _isHoistImmune = true;
+
+            return this;
+        }
+
         #endregion
 
         #region TREE MANIPULATION
@@ -432,7 +447,7 @@ namespace Interpreter_lib.Parser
 
         private void AddToTree(Node node)
         {
-            if (_isHoisted || node.GetRule() == _rule)
+            if ((_isHoisted || node.GetRule() == _rule || (node.TokenCount == 1 && node.NodeCount == 1) || (node.TopNodeCount == 1 && node.TopTokenCount == 0)) && !_isHoistImmune)
             {
                 _tree.Add(node.GetNodes());
                 _tree.Add(node.GetTokens());

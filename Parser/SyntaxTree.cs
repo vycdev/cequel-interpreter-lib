@@ -13,13 +13,17 @@ namespace Interpreter_lib.Parser
         private List<Node> _nodes;
         private List<Token> _tokens;
         public bool IsEmpty => _nodes.Count == 0 && _tokens.Count == 0;
+        public int TokenCount => _tokens.Count + _nodes.Aggregate(0, (acc, n) => acc + n.TokenCount);
+        public int NodeCount => 1 + _nodes.Aggregate(0, (acc, n) => acc + n.NodeCount);
+        public int TopTokenCount => _tokens.Count;
+        public int TopNodeCount => _nodes.Count;
 
         public Node(ERule rule) 
         {
             _nodes = new();
             _tokens = new();
             _rule = rule;
-        }
+        } 
 
         public ERule GetRule()
         {

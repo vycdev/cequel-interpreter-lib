@@ -38,6 +38,7 @@ namespace Interpreter_lib.Parser
     public interface IRuleRuleConfiguration : IRuleFrequencyConfiguration
     {
         IRuleRuleConfiguration Hoist();
+        IRuleRuleConfiguration NeverHoist();
     }
 
 
