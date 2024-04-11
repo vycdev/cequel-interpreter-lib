@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Interpreter_lib.Parser;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,7 +45,7 @@ namespace Interpreter_lib.Tokenizer
         public string FOR { get; set; } = "for";
     }
 
-    public class Token : ICloneable
+    public class Token : ISyntaxNode
     {
         public EToken Type { get; private set; }
         public string Value { get; private set; }

@@ -7,21 +7,22 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Parser
 {
-    public class Node : ICloneable
+    public class Node : ISyntaxNode
     {
         private ERule _rule;
-        private List<Node> _nodes;
-        private List<Token> _tokens;
-        public bool IsEmpty => _nodes.Count == 0 && _tokens.Count == 0;
-        public int TokenCount => _tokens.Count + _nodes.Aggregate(0, (acc, n) => acc + n.TokenCount);
-        public int NodeCount => 1 + _nodes.Aggregate(0, (acc, n) => acc + n.NodeCount);
-        public int TopTokenCount => _tokens.Count;
-        public int TopNodeCount => _nodes.Count;
+        private List<ISyntaxNode> _syntaxNodes; 
+        public bool IsEmpty => _syntaxNodes.Count == 0;
+        public int TokenCount => _syntaxNodes.Count(isToken) + _syntaxNodes.Where(isNode).Aggregate(0, (acc, n) => acc + ((Node)n).TokenCount);
+        public int NodeCount => 1 + _syntaxNodes.Where(isNode).Aggregate(0, (acc, n) => acc + ((Node)n).NodeCount);
+        public int TopTokenCount => _syntaxNodes.Count(isToken);
+        public int TopNodeCount => _syntaxNodes.Count(isNode);
+
+        private Func<ISyntaxNode, bool> isNode = x => x.GetType() == typeof(Node);
+        private Func<ISyntaxNode, bool> isToken = x => x.GetType() == typeof(Token);
 
         public Node(ERule rule) 
         {
-            _nodes = new();
-            _tokens = new();
+            _syntaxNodes = new();
             _rule = rule;
         } 
 
@@ -30,41 +31,48 @@ namespace Interpreter_lib.Parser
             return _rule;
         }
 
+        public List<ISyntaxNode> GetSyntaxNodes()
+        {
+            return _syntaxNodes.Select(n => (ISyntaxNode)n.Clone()).ToList();
+        }
+
         public List<Node> GetNodes()
         {
-            return new List<Node>(_nodes.Select(n => (Node)n.Clone())); 
+            return _syntaxNodes.Where(isNode).Select(n => (Node)((Node)n).Clone()).ToList(); 
         }
 
         public List<Token> GetTokens()
         {
-            return _tokens;
+            return _syntaxNodes.Where(isToken).Select(t => (Token)t).ToList();
         }
 
         public void Add(Node node)
         {
-            _nodes.Add((Node)node.Clone());
+            _syntaxNodes.Add((Node)node.Clone());
         }
 
         public void Add(List<Node> nodes)
         {
-            _nodes.AddRange(nodes.Select(n => (Node)n.Clone()));
+            _syntaxNodes.AddRange(nodes.Select(n => (Node)n.Clone()));
         }
 
         public void Add(Token token)
         {
-            _tokens.Add(token);
+            _syntaxNodes.Add(token);
         }
 
         public void Add(List<Token> tokens)
         {
-            _tokens.AddRange(tokens);
+            _syntaxNodes.AddRange(tokens);
         }
 
         public object Clone()
         {
             Node node = new(_rule);
-            node._nodes = new(_nodes);
-            node._tokens = new(_tokens);
+
+            List<ISyntaxNode> nodes = new();
+
+            node._syntaxNodes.AddRange(_syntaxNodes.Select(n => (ISyntaxNode)n.Clone()));
 
             return node;
         }
