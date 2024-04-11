@@ -10,12 +10,18 @@ namespace Interpreter_lib.Parser
 
         // Data from which the syntax tree is created.
         private List<Token> _tokens;
-        private List<Node> _tree;
+        private Node _tree;
+
+        private const ERule _rootRule = ERule.ROOT;
 
         public Parser(List<Token> tokens)
         {
             _tokens = tokens;
-            _tree = new();
+            _tree = new Node(_rootRule);
+
+            // ROOT 
+            Rule.AddRule(new Rule(ERule.ROOT, o => o
+                .WithR(ERule.EXPRESSION).NeverHoist().ZeroOrMore()));
 
             // Grouping
             Rule.AddRule(new Rule(ERule.GROUP, o => o
@@ -89,8 +95,9 @@ namespace Interpreter_lib.Parser
 
         public void Parse()
         {
-            List<Rule> rules = Rule.GetRules(ERule.EXPRESSION);
+            List<Rule> rules = Rule.GetRules(_rootRule);
             Node node;
+
             foreach (Rule rule in rules)
             {
                 if (_currentTokenIndex > 0)
@@ -98,7 +105,12 @@ namespace Interpreter_lib.Parser
                 else
                     node = rule.Evaluate(_tokens);
 
-                if (!node.IsEmpty)
+                if(_tree.IsEmpty && !node.IsEmpty)
+                {
+                    _tree = node;
+                    _currentTokenIndex += rule._currentTokenIndex;
+                } 
+                else if (!node.IsEmpty)
                 {
                     _tree.Add(node);
                     _currentTokenIndex += rule._currentTokenIndex;
@@ -106,7 +118,7 @@ namespace Interpreter_lib.Parser
             }
         }
 
-        public List<Node> GetTree()
+        public Node GetTree()
         {
             return _tree;
         }

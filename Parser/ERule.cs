@@ -8,6 +8,8 @@ namespace Interpreter_lib.Parser
 {
     public enum ERule
     {
+        ROOT, 
+
         EXPRESSION,
         PRIMARY,
 
