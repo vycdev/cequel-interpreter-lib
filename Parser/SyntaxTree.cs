@@ -69,9 +69,7 @@ namespace Interpreter_lib.Parser
         public object Clone()
         {
             Node node = new(_rule);
-
             List<ISyntaxNode> nodes = new();
-
             node._syntaxNodes.AddRange(_syntaxNodes.Select(n => (ISyntaxNode)n.Clone()));
 
             return node;
