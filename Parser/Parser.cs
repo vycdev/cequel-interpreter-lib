@@ -25,9 +25,29 @@ namespace Interpreter_lib.Parser
 
             // Expression
             Rule.AddRule(new Rule(ERule.EXPRESSION, o => o
-                .WithR(ERule.LESS_THAN).Once()));
+                .WithR(ERule.LOGICAL_OR).Once()));
 
-            
+            // LOGICAL_OR, SUBSEQUENT_LOGICAL_OR,
+            Rule.AddBinaryOperatorRule(ERule.LOGICAL_OR, ERule.SUBSEQUENT_LOGICAL_OR, ERule.LOGICAL_AND, EToken.OR);
+
+            // LOGICAL_AND, SUBSEQUENT_LOGICAL_AND,
+            Rule.AddBinaryOperatorRule(ERule.LOGICAL_AND, ERule.SUBSEQUENT_LOGICAL_AND, ERule.BITWISE_OR, EToken.AND);
+
+            // BITWISE_OR, SUBSEQUENT_BITWISE_OR,
+            Rule.AddBinaryOperatorRule(ERule.BITWISE_OR, ERule.SUBSEQUENT_BITWISE_OR, ERule.BITWISE_XOR, EToken.BITWISE_OR);
+
+            // BITWISE_XOR, SUBSEQUENT_BITWISE_XOR,
+            Rule.AddBinaryOperatorRule(ERule.BITWISE_XOR, ERule.SUBSEQUENT_BITWISE_XOR, ERule.BITWISE_AND, EToken.BITWISE_XOR);
+
+            // BITWISE_AND, SUBSEQUENT_BITWISE_AND,
+            Rule.AddBinaryOperatorRule(ERule.BITWISE_AND, ERule.SUBSEQUENT_BITWISE_AND, ERule.NOT_EQUAL, EToken.BITWISE_AND);
+
+            // NOT_EQUAL, SUBSEQUENT_NOT_EQUAL,
+            Rule.AddBinaryOperatorRule(ERule.NOT_EQUAL, ERule.SUBSEQUENT_NOT_EQUAL, ERule.EQUAL, EToken.NOT_EQUAL);
+
+            // EQUAL, SUBSEQUENT_EQUAL,
+            Rule.AddBinaryOperatorRule(ERule.EQUAL, ERule.SUBSEQUENT_EQUAL, ERule.LESS_THAN, EToken.EQUAL);
+
             // LESS_THAN, SUBSEQUENT_LESS_THAN,
             Rule.AddBinaryOperatorRule(ERule.LESS_THAN, ERule.SUBSEQUENT_LESS_THAN, ERule.LESS_THAN_EQUAL, EToken.LESS_THAN);
             
