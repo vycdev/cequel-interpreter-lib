@@ -25,7 +25,23 @@ namespace Interpreter_lib.Parser
 
             // Expression
             Rule.AddRule(new Rule(ERule.EXPRESSION, o => o
-                .WithR(ERule.SUM).Once()));
+                .WithR(ERule.BITWISE_LEFT_SHIFT).Once()));
+
+            // BITWISE_LEFT_SHIFT, SUBSEQUENT_BITWISE_LEFT_SHIFT,
+            Rule.AddRule(new Rule(ERule.BITWISE_LEFT_SHIFT, o => o
+                .WithR(ERule.BITWISE_RIGHT_SHIFT).Once()
+                .ThenR(ERule.SUBSEQUENT_BITWISE_LEFT_SHIFT).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_BITWISE_LEFT_SHIFT, o => o
+                .WithT(EToken.BITWISE_LEFT_SHIFT).Exclude().Once()
+                .ThenR(ERule.BITWISE_RIGHT_SHIFT).Once()));
+
+            // BITWISE_RIGHT_SHIFT, SUBSEQUENT_BITWISE_RIGHT_SHIFT,
+            Rule.AddRule(new Rule(ERule.BITWISE_RIGHT_SHIFT, o => o
+                .WithR(ERule.SUM).Once()
+                .ThenR(ERule.SUBSEQUENT_BITWISE_RIGHT_SHIFT).Hoist().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_BITWISE_RIGHT_SHIFT, o => o
+                .WithT(EToken.BITWISE_RIGHT_SHIFT).Exclude().Once()
+                .ThenR(ERule.SUM).Once()));
 
             // SUM, SUBSEQUENT_SUM, 
             Rule.AddRule(new Rule(ERule.SUM, o => o
