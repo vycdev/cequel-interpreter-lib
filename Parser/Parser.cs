@@ -23,22 +23,6 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.ROOT, o => o
                 .WithR(ERule.EXPRESSION).NeverHoist().ZeroOrMore()));
 
-            // Grouping
-            Rule.AddRule(new Rule(ERule.GROUP, o => o
-                .WithT(EToken.LEFT_PARENTHESIS).Exclude().Once()
-                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
-                .ThenT(EToken.RIGHT_PARENTHESIS).Exclude().Once()));
-
-            // Primary
-            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
-                .WithT(EToken.NUMBER).Once()));
-            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
-                .WithT(EToken.IDENTIFIER).Once()));
-            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
-                .WithR(ERule.GROUP).Hoist().Once()));            
-            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
-                .WithR(ERule.FLOOR).NeverHoist().Once()));
-
             // Expression
             Rule.AddRule(new Rule(ERule.EXPRESSION, o => o
                 .WithR(ERule.SUM).Once()));
@@ -86,11 +70,27 @@ namespace Interpreter_lib.Parser
                 .WithT(EToken.POWER).Exclude().Once()
                 .ThenR(ERule.PRIMARY).Once()));
 
-            // Unary Operations
+            // FLOOR
             Rule.AddRule(new Rule(ERule.FLOOR, o => o
                 .WithT(EToken.LEFT_SQUARE_BRACKET).Exclude().Once()
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()
                 .ThenT(EToken.RIGHT_SQUARE_BRACKET).Exclude().Once()));
+            
+            // Grouping
+            Rule.AddRule(new Rule(ERule.GROUP, o => o
+                .WithT(EToken.LEFT_PARENTHESIS).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
+                .ThenT(EToken.RIGHT_PARENTHESIS).Exclude().Once()));
+
+            // Primary
+            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
+                .WithT(EToken.NUMBER).Once()));
+            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
+                .WithT(EToken.IDENTIFIER).Once()));
+            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
+                .WithR(ERule.GROUP).Hoist().Once()));            
+            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
+                .WithR(ERule.FLOOR).NeverHoist().Once()));
         }
 
         public void Parse()
