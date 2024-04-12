@@ -207,7 +207,7 @@ namespace Interpreter_lib.Tokenizer
                             return new Token(Interpreter_lib.Tokenizer.EToken.BITWISE_RIGHT_SHIFT, ">>");
                         }
 
-                        return new Token(Interpreter_lib.Tokenizer.EToken.GREATHER_THAN, ">");
+                        return new Token(Interpreter_lib.Tokenizer.EToken.GREATER_THAN, ">");
 
                     case '&':
                         if (Peek() == '&')

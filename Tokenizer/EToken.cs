@@ -10,7 +10,7 @@ namespace Interpreter_lib.Tokenizer
     {
         PLUS, MINUS, MULTIPLY, DIVIDE, MODULUS, POWER, LEFT_SQUARE_BRACKET, RIGHT_SQUARE_BRACKET, // arithmetic operators
         LEFT_PARENTHESIS, RIGHT_PARENTHESIS, // grouping operators
-        EQUAL, NOT_EQUAL, LESS_THAN, GREATHER_THAN, LESS_THAN_EQUAL, GREATER_THAN_EQUAL, // comparison operators
+        EQUAL, NOT_EQUAL, LESS_THAN, GREATER_THAN, LESS_THAN_EQUAL, GREATER_THAN_EQUAL, // comparison operators
         AND, OR, NOT, // logical operators
 
         BITWISE_AND, BITWISE_OR, BITWISE_XOR, BITWISE_NOT, BITWISE_LEFT_SHIFT, BITWISE_RIGHT_SHIFT, // bitwise operators

@@ -25,66 +25,45 @@ namespace Interpreter_lib.Parser
 
             // Expression
             Rule.AddRule(new Rule(ERule.EXPRESSION, o => o
-                .WithR(ERule.BITWISE_LEFT_SHIFT).Once()));
+                .WithR(ERule.LESS_THAN).Once()));
 
+            
+            // LESS_THAN, SUBSEQUENT_LESS_THAN,
+            Rule.AddBinaryOperatorRule(ERule.LESS_THAN, ERule.SUBSEQUENT_LESS_THAN, ERule.LESS_THAN_EQUAL, EToken.LESS_THAN);
+            
+            // LESS_THAN_EQUAL, SUBSEQUENT_LESS_THAN_EQUAL,
+            Rule.AddBinaryOperatorRule(ERule.LESS_THAN_EQUAL, ERule.SUBSEQUENT_LESS_THAN_EQUAL, ERule.GREATER_THAN, EToken.LESS_THAN_EQUAL);
+
+            // GREATER_THAN, SUBSEQUENT_GREATER_THAN,
+            Rule.AddBinaryOperatorRule(ERule.GREATER_THAN, ERule.SUBSEQUENT_GREATER_THAN, ERule.GREATER_THAN_EQUAL, EToken.GREATER_THAN);
+
+            // GREATER_THAN_EQUAL, SUBSEQUENT_GREATER_THAN_EQUAL,
+            Rule.AddBinaryOperatorRule(ERule.GREATER_THAN_EQUAL, ERule.SUBSEQUENT_GREATER_THAN_EQUAL, ERule.BITWISE_LEFT_SHIFT, EToken.GREATER_THAN_EQUAL);
+            
             // BITWISE_LEFT_SHIFT, SUBSEQUENT_BITWISE_LEFT_SHIFT,
-            Rule.AddRule(new Rule(ERule.BITWISE_LEFT_SHIFT, o => o
-                .WithR(ERule.BITWISE_RIGHT_SHIFT).Once()
-                .ThenR(ERule.SUBSEQUENT_BITWISE_LEFT_SHIFT).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_BITWISE_LEFT_SHIFT, o => o
-                .WithT(EToken.BITWISE_LEFT_SHIFT).Exclude().Once()
-                .ThenR(ERule.BITWISE_RIGHT_SHIFT).Once()));
+            Rule.AddBinaryOperatorRule(ERule.BITWISE_LEFT_SHIFT, ERule.SUBSEQUENT_BITWISE_LEFT_SHIFT, ERule.BITWISE_RIGHT_SHIFT, EToken.BITWISE_LEFT_SHIFT);
 
             // BITWISE_RIGHT_SHIFT, SUBSEQUENT_BITWISE_RIGHT_SHIFT,
-            Rule.AddRule(new Rule(ERule.BITWISE_RIGHT_SHIFT, o => o
-                .WithR(ERule.SUM).Once()
-                .ThenR(ERule.SUBSEQUENT_BITWISE_RIGHT_SHIFT).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_BITWISE_RIGHT_SHIFT, o => o
-                .WithT(EToken.BITWISE_RIGHT_SHIFT).Exclude().Once()
-                .ThenR(ERule.SUM).Once()));
+            Rule.AddBinaryOperatorRule(ERule.BITWISE_RIGHT_SHIFT, ERule.SUBSEQUENT_BITWISE_RIGHT_SHIFT, ERule.SUM, EToken.BITWISE_RIGHT_SHIFT);
 
             // SUM, SUBSEQUENT_SUM, 
-            Rule.AddRule(new Rule(ERule.SUM, o => o
-                .WithR(ERule.SUBTRACT).Once()
-                .ThenR(ERule.SUBSEQUENT_SUM).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_SUM, o => o
-                .WithT(EToken.PLUS).Exclude().Once()
-                .ThenR(ERule.SUBTRACT).Once()));
+            Rule.AddBinaryOperatorRule(ERule.SUM, ERule.SUBSEQUENT_SUM, ERule.SUBTRACT, EToken.PLUS);
+
             // SUBTRACT, SUBSEQUENT_SUBTRACT, 
-            Rule.AddRule(new Rule(ERule.SUBTRACT, o => o
-                .WithR(ERule.MULTIPLY).Once()
-                .ThenR(ERule.SUBSEQUENT_MULTIPLY).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MULTIPLY, o => o
-                .WithT(EToken.MINUS).Exclude().Once()
-                .ThenR(ERule.MULTIPLY).Once()));
+            Rule.AddBinaryOperatorRule(ERule.SUBTRACT, ERule.SUBSEQUENT_SUBTRACT, ERule.MULTIPLY, EToken.MINUS);
+
             // MULTIPLY, SUBSEQUENT_MULTIPLY, 
-            Rule.AddRule(new Rule(ERule.MULTIPLY, o => o
-                .WithR(ERule.DIVIDE).Once()
-                .ThenR(ERule.SUBSEQUENT_MULTIPLY).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MULTIPLY, o => o
-                .WithT(EToken.MULTIPLY).Exclude().Once()
-                .ThenR(ERule.DIVIDE).Once()));
+            Rule.AddBinaryOperatorRule(ERule.MULTIPLY, ERule.SUBSEQUENT_MULTIPLY, ERule.DIVIDE, EToken.MULTIPLY);
+
             // DIVIDE, SUBSEQUENT_DIVIDE,
-            Rule.AddRule(new Rule(ERule.DIVIDE, o => o
-                .WithR(ERule.MODULUS).Once()
-                .ThenR(ERule.SUBSEQUENT_DIVIDE).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_DIVIDE, o => o
-                .WithT(EToken.DIVIDE).Exclude().Once()
-                .ThenR(ERule.MODULUS).Once()));
+            Rule.AddBinaryOperatorRule(ERule.DIVIDE, ERule.SUBSEQUENT_DIVIDE, ERule.MODULUS, EToken.DIVIDE);
+
             // MODULUS, SUBSEQUENT_MODULUS,
-            Rule.AddRule(new Rule(ERule.MODULUS, o => o
-                .WithR(ERule.POWER).Once()
-                .ThenR(ERule.SUBSEQUENT_MODULUS).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_MODULUS, o => o
-                .WithT(EToken.MODULUS).Exclude().Once()
-                .ThenR(ERule.POWER).Once()));
+            Rule.AddBinaryOperatorRule(ERule.MODULUS, ERule.SUBSEQUENT_MODULUS, ERule.POWER, EToken.MODULUS);
+
             // POWER, SUBSEQUENT_POWER,
-            Rule.AddRule(new Rule(ERule.POWER, o => o
-                .WithR(ERule.PRIMARY).Once()
-                .ThenR(ERule.SUBSEQUENT_POWER).Hoist().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_POWER, o => o
-                .WithT(EToken.POWER).Exclude().Once()
-                .ThenR(ERule.PRIMARY).Once()));
+            Rule.AddBinaryOperatorRule(ERule.POWER, ERule.SUBSEQUENT_POWER, ERule.PRIMARY, EToken.POWER);
+
 
             // FLOOR
             Rule.AddRule(new Rule(ERule.FLOOR, o => o

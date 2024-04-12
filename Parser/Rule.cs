@@ -467,6 +467,16 @@ namespace Interpreter_lib.Parser
             _rules.Add(rule);
         }
 
+        public static void AddBinaryOperatorRule(ERule ruleName, ERule subsequentRuleName, ERule nextRuleName, EToken token)
+        {
+            AddRule(new Rule(ruleName, o => o
+                .WithR(nextRuleName).Once()
+                .ThenR(subsequentRuleName).Hoist().ZeroOrMore()));
+            AddRule(new Rule(subsequentRuleName, o => o
+                .WithT(token).Exclude().Once()
+                .ThenR(nextRuleName).Once()));
+        }
+
         #endregion
 
         #region OTHER
