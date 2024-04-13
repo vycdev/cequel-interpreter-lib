@@ -186,13 +186,13 @@ namespace Interpreter_lib.Parser
                         break;
                     }
                 }
-
-                if (_hasMatchedW && !hasMatchedOnce && _lastToMatch)
-                    throw new ParsingException(this, "Rule has matched less than once.");
-
-                if (hasMatchedOnce && _isWSide)
-                    _hasMatchedW = true;
             }
+
+            if (_hasMatchedW && !hasMatchedOnce && _lastToMatch)
+                throw new ParsingException(this, $"{(_currentRulesToMatch.Count > 0 ? "Rule" : "Token")} has matched less than once.");
+
+            if (hasMatchedOnce && _isWSide)
+                _hasMatchedW = true;
 
             return this;
         }
