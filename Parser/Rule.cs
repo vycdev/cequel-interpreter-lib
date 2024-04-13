@@ -143,7 +143,7 @@ namespace Interpreter_lib.Parser
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.Once()
         {
             if (_tokens.Count == 0)
-                return this;
+                throw new ParsingException(this, "Missing tokens.");
 
             if (_isTSide && !_hasMatchedW)
                 return this;
@@ -201,7 +201,7 @@ namespace Interpreter_lib.Parser
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtLeastOnce()
         {
             if (_tokens.Count == 0)
-                return this;
+                throw new ParsingException(this, "Missing tokens.");
 
             if (_isTSide && !_hasMatchedW)
                 return this;
@@ -265,7 +265,7 @@ namespace Interpreter_lib.Parser
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtMostOnce()
         {
             if (_tokens.Count == 0)
-                return this;
+                throw new ParsingException(this, "Missing tokens.");
 
             if (_isTSide && !_hasMatchedW)
                 return this;
@@ -309,7 +309,7 @@ namespace Interpreter_lib.Parser
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.ZeroOrMore()
         {
             if (_tokens.Count == 0)
-                return this;
+                throw new ParsingException(this, "Missing tokens.");
 
             if (_isTSide && !_hasMatchedW)
                 return this;
