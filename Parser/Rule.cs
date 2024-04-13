@@ -148,6 +148,8 @@ namespace Interpreter_lib.Parser
             if (_isTSide && !_hasMatchedW)
                 return this;
 
+            bool hasMatchedOnce = false;
+
             if (_currentTokensToMatch.Count > 0)
             {
                 foreach (EToken token in _currentTokensToMatch)
@@ -156,10 +158,7 @@ namespace Interpreter_lib.Parser
                     {
                         AddToTree(_tokens[_currentTokenIndex]);
                         _currentTokenIndex++;
-
-                        if (_isWSide)
-                            _hasMatchedW = true;
-
+                        hasMatchedOnce = true;
                         break;
                     }
                 }
@@ -169,7 +168,6 @@ namespace Interpreter_lib.Parser
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
                 Node node;
                 Rule currentRule; 
-                var ok = false;
 
                 for (int i = 0; i < currentRules.Count; i++)
                 {
@@ -184,15 +182,15 @@ namespace Interpreter_lib.Parser
                     {
                         AddToTree(node);
                         _currentTokenIndex += currentRule._currentTokenIndex;
-                        ok = true;
+                        hasMatchedOnce = true;
                         break;
                     }
                 }
 
-                if (_hasMatchedW && !ok && _lastToMatch)
+                if (_hasMatchedW && !hasMatchedOnce && _lastToMatch)
                     throw new ParsingException(this, "Rule has matched less than once.");
 
-                if (ok && _isWSide)
+                if (hasMatchedOnce && _isWSide)
                     _hasMatchedW = true;
             }
 
