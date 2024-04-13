@@ -321,11 +321,9 @@ namespace Interpreter_lib.Parser
                             node = currentRule.Evaluate(_tokens);
 
                         if (!node.IsEmpty && _hasMatchedW && _lastToMatch)
-                        {
                             throw new ParsingException(this, "Rule has matched more than once.");
                         }
                     }
-                }
 
                 if (ok && _isWSide)
                     _hasMatchedW = true;
