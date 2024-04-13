@@ -274,33 +274,25 @@ namespace Interpreter_lib.Parser
             if (_isTSide && !_hasMatchedW)
                 return this;
 
+            bool hasMatchedOnce = false;
+
             if (_currentTokensToMatch.Count > 0)
             {
-                var ok = false;
                 foreach (EToken token in _currentTokensToMatch)
                 {
                     if (_tokens[_currentTokenIndex].Type == token)
                     {
                         AddToTree(_tokens[_currentTokenIndex]);
                         _currentTokenIndex++;
-                        ok = true;
-
-                        if (_tokens[_currentTokenIndex].Type == token && _hasMatchedW && _lastToMatch)
-                            throw new ParsingException(this, "Token has matched more than once.");
-                    }
-
-                    if (ok)
+                        hasMatchedOnce = true;
                         break;
+                    }
                 }
-
-                if(ok && _isWSide)
-                    _hasMatchedW = true;
             }
             else if (_currentRulesToMatch.Count > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
                 Node node;
-                var ok = false;
                 foreach (Rule currentRule in currentRules)
                 {
                     node = currentRule.Evaluate(_tokens, _currentTokenIndex);
@@ -309,28 +301,14 @@ namespace Interpreter_lib.Parser
                     {
                         AddToTree(node);
                         _currentTokenIndex += currentRule._currentTokenIndex;
-                        ok = true;
+                        hasMatchedOnce = true;
                         break;
                     }
                 }
-
-                if (ok)
-                {
-                    foreach (Rule currentRule in currentRules)
-                    {
-                        if (_currentTokenIndex > 0)
-                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                        else
-                            node = currentRule.Evaluate(_tokens);
-
-                        if (!node.IsEmpty && _hasMatchedW && _lastToMatch)
-                            throw new ParsingException(this, "Rule has matched more than once.");
-                    }
-                }
-
-                if (ok && _isWSide)
-                    _hasMatchedW = true;
             }
+
+            if (hasMatchedOnce && _isWSide)
+                _hasMatchedW = true;
 
             return this;
         }
