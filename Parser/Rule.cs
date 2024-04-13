@@ -1,5 +1,6 @@
 ﻿using Interpreter_lib.Tokenizer;
 using System.Numerics;
+using System.Timers;
 
 namespace Interpreter_lib.Parser
 {
@@ -46,10 +47,15 @@ namespace Interpreter_lib.Parser
             _currentRulesToMatch = new();
         }
 
-        public Node Evaluate(List<Token> tokens)
+        public Node Evaluate(List<Token> tokens, int? currentTokenIndex = 0)
         {
             Reset();
-            _tokens = tokens;
+                
+            if(currentTokenIndex > 0)
+                _tokens = tokens.Skip(currentTokenIndex.Value).ToList();
+            else
+                _tokens = tokens;
+
             _definition(this);
 
             return _tree;
@@ -160,19 +166,18 @@ namespace Interpreter_lib.Parser
             else if (_currentRulesToMatch.Count() > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
-                Node node; 
+                Node node;
+                Rule currentRule; 
                 var ok = false;
 
                 for (int i = 0; i < currentRules.Count; i++)
                 {
-                    Rule currentRule = currentRules[i];
+                    currentRule = currentRules[i];
+                    
                     if(i == currentRules.Count - 1)
                         currentRule._lastToMatch = true;
 
-                    if (_currentTokenIndex > 0)
-                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                    else
-                        node = currentRule.Evaluate(_tokens);
+                    node = currentRule.Evaluate(_tokens, _currentTokenIndex);
 
                     if (!node.IsEmpty)
                     {
@@ -225,20 +230,18 @@ namespace Interpreter_lib.Parser
             else if (_currentRulesToMatch.Count() > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
-                Node node;
+                Node node = new(_rule);
+                Rule currentRule;
 
-                for (int i = 0; i < currentRules.Count; i++)
+                do
                 {
-                    Rule currentRule = currentRules[i];
-                    if (i == currentRules.Count - 1)
-                        currentRule._lastToMatch = true;
-
-                    do
+                    for (int i = 0; i < currentRules.Count; i++)
                     {
-                        if (_currentTokenIndex > 0)
-                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                        else
-                            node = currentRule.Evaluate(_tokens);
+                        currentRule = currentRules[i];
+                        if (i == currentRules.Count - 1)
+                            currentRule._lastToMatch = true;
+
+                        node = currentRule.Evaluate(_tokens, _currentTokenIndex);
 
                         if (!node.IsEmpty)
                         {
@@ -246,8 +249,8 @@ namespace Interpreter_lib.Parser
                             _currentTokenIndex += currentRule._currentTokenIndex;
                             ok = true;
                         }
-                    } while (!node.IsEmpty);
-                }
+                    }
+                } while (!node.IsEmpty);
 
                 if (_hasMatchedW && !ok && _lastToMatch)
                     throw new ParsingException(this, "Rule has matched less than once.");
@@ -297,10 +300,7 @@ namespace Interpreter_lib.Parser
                 var ok = false;
                 foreach (Rule currentRule in currentRules)
                 {
-                    if (_currentTokenIndex > 0)
-                        node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                    else
-                        node = currentRule.Evaluate(_tokens);
+                    node = currentRule.Evaluate(_tokens, _currentTokenIndex);
 
                     if (!node.IsEmpty)
                     {
@@ -362,16 +362,13 @@ namespace Interpreter_lib.Parser
             else if (_currentRulesToMatch.Count() > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
-                Node node;
+                Node node = new(_rule);
                 var ok = false; 
-                foreach (Rule currentRule in currentRules)
+                do
                 {
-                    do
+                    foreach (Rule currentRule in currentRules)
                     {
-                        if (_currentTokenIndex > 0)
-                            node = currentRule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                        else
-                            node = currentRule.Evaluate(_tokens);
+                        node = currentRule.Evaluate(_tokens, _currentTokenIndex);
 
                         if (!node.IsEmpty)
                         {
@@ -379,8 +376,8 @@ namespace Interpreter_lib.Parser
                             _currentTokenIndex += currentRule._currentTokenIndex;
                             ok = true;
                         }
-                    } while (!node.IsEmpty);
-                }
+                    }
+                } while (!node.IsEmpty);
 
                 if (ok && _isWSide)
                     _hasMatchedW = true;
@@ -481,7 +478,7 @@ namespace Interpreter_lib.Parser
         {
             AddRule(new Rule(ruleName, o => o
                 .WithT(token).Exclude().Once()
-                .ThenR(ruleName).Once()));
+                .ThenR(ruleName).NeverHoist().Once()));
             AddRule(new Rule(ruleName, o => o
                 .WithR(nextRuleName).Once()));
         } 
