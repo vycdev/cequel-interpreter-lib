@@ -90,19 +90,22 @@ namespace Interpreter_lib.Parser
             Rule.AddLTRBinaryOperatorRule(ERule.MODULUS, ERule.SUBSEQUENT_MODULUS, ERule.POWER, EToken.MODULUS);
 
             // POWER, SUBSEQUENT_POWER,
-            Rule.AddLTRBinaryOperatorRule(ERule.POWER, ERule.SUBSEQUENT_POWER, ERule.UNARY_MINUS, EToken.POWER);
+            Rule.AddLTRBinaryOperatorRule(ERule.POWER, ERule.SUBSEQUENT_POWER, ERule.UNARY, EToken.POWER);
 
-            // UNARY_MINUS
-            Rule.AddRTLUnaryOperator(ERule.UNARY_MINUS, ERule.UNARY_PLUS, EToken.MINUS);
+            Rule.AddRule(new Rule(ERule.UNARY_MINUS, o => o
+                .WithT(EToken.MINUS).Once()));
+            Rule.AddRule(new Rule(ERule.UNARY_PLUS, o => o
+                .WithT(EToken.PLUS).Once()));
+            Rule.AddRule(new Rule(ERule.UNARY_NOT, o => o
+                .WithT(EToken.NOT).Once()));
+            Rule.AddRule(new Rule(ERule.UNARY_BITWISE_NOT, o => o
+                .WithT(EToken.BITWISE_NOT).Once()));
 
-            // UNARY_PLUS,
-            Rule.AddRTLUnaryOperator(ERule.UNARY_PLUS, ERule.UNARY_NOT, EToken.PLUS);
-
-            // UNARY_NOT,
-            Rule.AddRTLUnaryOperator(ERule.UNARY_NOT, ERule.UNARY_BITWISE_NOT, EToken.NOT);
-            
-            // UNARY_BITWISE_NOT,
-            Rule.AddRTLUnaryOperator(ERule.UNARY_BITWISE_NOT, ERule.PRIMARY, EToken.BITWISE_NOT);
+            Rule.AddRule(new Rule(ERule.UNARY, o => o
+                .WithR(ERule.UNARY_MINUS, ERule.UNARY_PLUS, ERule.UNARY_BITWISE_NOT, ERule.UNARY_NOT).NeverHoist().Once()
+                .ThenR(ERule.UNARY).Once()));
+            Rule.AddRule(new Rule(ERule.UNARY, o => o
+                .WithR(ERule.PRIMARY).Once()));
 
             // FLOOR
             Rule.AddRule(new Rule(ERule.FLOOR, o => o

@@ -35,6 +35,7 @@ namespace Interpreter_lib.Parser
         MODULUS, SUBSEQUENT_MODULUS,
         POWER, SUBSEQUENT_POWER,
         
+        UNARY,
         UNARY_MINUS, 
         UNARY_PLUS,
         UNARY_NOT,
