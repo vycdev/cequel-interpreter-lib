@@ -175,10 +175,10 @@ namespace Interpreter_lib.Parser
                         node = currentRule.Evaluate(_tokens);
 
                     if (!node.IsEmpty)
-                {
+                    {
                         AddToTree(node);
                         _currentTokenIndex += currentRule._currentTokenIndex;
-                    ok = true;
+                        ok = true;
                         break;
                     }
                 }
@@ -467,7 +467,7 @@ namespace Interpreter_lib.Parser
             _rules.Add(rule);
         }
 
-        public static void AddBinaryOperatorRule(ERule ruleName, ERule subsequentRuleName, ERule nextRuleName, EToken token)
+        public static void AddLTRBinaryOperatorRule(ERule ruleName, ERule subsequentRuleName, ERule nextRuleName, EToken token)
         {
             AddRule(new Rule(ruleName, o => o
                 .WithR(nextRuleName).Once()
@@ -476,6 +476,15 @@ namespace Interpreter_lib.Parser
                 .WithT(token).Exclude().Once()
                 .ThenR(nextRuleName).Once()));
         }
+
+        public static void AddRTLUnaryOperator(ERule ruleName, ERule nextRuleName, EToken token)
+        {
+            AddRule(new Rule(ruleName, o => o
+                .WithT(token).Exclude().Once()
+                .ThenR(ruleName).Once()));
+            AddRule(new Rule(ruleName, o => o
+                .WithR(nextRuleName).Once()));
+        } 
 
         #endregion
 
