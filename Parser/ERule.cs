@@ -44,5 +44,7 @@ namespace Interpreter_lib.Parser
         FLOOR,
         
         GROUP,
+
+        SIMPLE_CONDITIONAL,
     }
 }

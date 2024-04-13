@@ -23,6 +23,7 @@ namespace Interpreter_lib.Parser
         private bool _isWSide = false;
         private bool _isTSide = false;
         private bool _lastToMatch = false;
+        private bool _hasFullyMatched = true;
 
         // Used for additional behavior when creating the nodes.
         private bool _isHoisted = false;
@@ -72,6 +73,7 @@ namespace Interpreter_lib.Parser
             _hasMatchedW = false;
             _isWSide = false;
             _isTSide = false;
+            _hasFullyMatched = true;
             _currentTokensToMatch.Clear();
             _currentRulesToMatch.Clear();
         }
@@ -178,7 +180,7 @@ namespace Interpreter_lib.Parser
 
                     node = currentRule.Evaluate(_tokens, _currentTokenIndex);
 
-                    if (!node.IsEmpty)
+                    if (currentRule._hasFullyMatched)
                     {
                         AddToTree(node);
                         _currentTokenIndex += currentRule._currentTokenIndex;
@@ -187,6 +189,9 @@ namespace Interpreter_lib.Parser
                     }
                 }
             }
+            
+            if(!hasMatchedOnce)
+                _hasFullyMatched = false;
 
             if (_hasMatchedW && !hasMatchedOnce && _lastToMatch)
                 throw new ParsingException(this, $"{(_currentRulesToMatch.Count > 0 ? "Rule" : "Token")} has matched less than once.");
@@ -206,7 +211,7 @@ namespace Interpreter_lib.Parser
             if (_isTSide && !_hasMatchedW)
                 return this;
 
-            bool hasMatchedAtLeastOnce = false;
+            bool hasMatchedOnce = false;
 
             if (_currentTokensToMatch.Count > 0)
             {
@@ -216,10 +221,10 @@ namespace Interpreter_lib.Parser
                     {
                         AddToTree(_tokens[_currentTokenIndex]);
                         _currentTokenIndex++;
-                        hasMatchedAtLeastOnce = true;
+                        hasMatchedOnce = true;
                     }
 
-                    if (hasMatchedAtLeastOnce)
+                    if (hasMatchedOnce)
                         break;
                 }
             }
@@ -239,23 +244,26 @@ namespace Interpreter_lib.Parser
 
                         node = currentRule.Evaluate(_tokens, _currentTokenIndex);
 
-                        if (!node.IsEmpty)
+                        if (currentRule._hasFullyMatched)
                         {
                             AddToTree(node);
                             _currentTokenIndex += currentRule._currentTokenIndex;
-                            hasMatchedAtLeastOnce = true;
+                            hasMatchedOnce = true;
                         }
-                    } while (!node.IsEmpty);
+                    } while (currentRule._hasFullyMatched);
                     
-                    if (hasMatchedAtLeastOnce)
+                    if (hasMatchedOnce)
                         break;
                 }
             }
 
-            if (_hasMatchedW && !hasMatchedAtLeastOnce && _lastToMatch)
+            if (!hasMatchedOnce)
+                _hasFullyMatched = false;
+
+            if (_hasMatchedW && !hasMatchedOnce && _lastToMatch)
                 throw new ParsingException(this, $"{(_currentRulesToMatch.Count > 0 ? "Rule" : "Token")} has matched less than once.");
 
-            if (hasMatchedAtLeastOnce && _isWSide)
+            if (hasMatchedOnce && _isWSide)
                 _hasMatchedW = true;
 
             return this;
@@ -290,7 +298,7 @@ namespace Interpreter_lib.Parser
                 {
                     node = currentRule.Evaluate(_tokens, _currentTokenIndex);
 
-                    if (!node.IsEmpty)
+                    if (currentRule._hasFullyMatched)
                     {
                         AddToTree(node);
                         _currentTokenIndex += currentRule._currentTokenIndex;
@@ -342,13 +350,13 @@ namespace Interpreter_lib.Parser
                     {
                         node = currentRule.Evaluate(_tokens, _currentTokenIndex);
 
-                        if (!node.IsEmpty)
+                        if (currentRule._hasFullyMatched)
                         {
                             AddToTree(node);
                             _currentTokenIndex += currentRule._currentTokenIndex;
                             hasMatchedAtLeastOnce = true;
                         }
-                    } while (!node.IsEmpty);
+                    } while (currentRule._hasFullyMatched);
 
                     if (hasMatchedAtLeastOnce)
                         break;
