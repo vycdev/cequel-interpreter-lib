@@ -10,6 +10,8 @@ namespace Interpreter_lib.Parser
     {
         ROOT, 
 
+        INSTRUCTION,
+
         EXPRESSION,
         PRIMARY,
 
@@ -32,8 +34,14 @@ namespace Interpreter_lib.Parser
         DIVIDE, SUBSEQUENT_DIVIDE,
         MODULUS, SUBSEQUENT_MODULUS,
         POWER, SUBSEQUENT_POWER,
-        FLOOR,
+        
+        UNARY_MINUS, 
+        UNARY_PLUS,
+        UNARY_NOT,
+        UNARY_BITWISE_NOT,
 
+        FLOOR,
+        
         GROUP,
     }
 }
