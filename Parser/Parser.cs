@@ -21,12 +21,11 @@ namespace Interpreter_lib.Parser
 
             // ROOT 
             Rule.AddRule(new Rule(ERule.ROOT, o => o
-                .WithR(ERule.INSTRUCTION).NeverHoist().ZeroOrMore()
+                .WithT(EToken.END_OF_LINE).Exclude().ZeroOrMore()
+                .ThenR(ERule.INSTRUCTION).NeverHoist().ZeroOrMore()
                 .ThenT(EToken.END_OF_FILE).Once()));
 
             // Instructions 
-            Rule.AddRule(new Rule(ERule.INSTRUCTION, o => o
-                 .WithT(EToken.END_OF_LINE).Exclude().AtLeastOnce()));
             Rule.AddRule(new Rule(ERule.INSTRUCTION, o => o
                  .WithR(ERule.EXPRESSION).NeverHoist().Once()
                  .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()));
@@ -126,7 +125,7 @@ namespace Interpreter_lib.Parser
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()
                 .ThenT(EToken.RIGHT_PARENTHESIS).Exclude().Once()));
 
-            // Primary
+            // Primary 
             Rule.AddRule(new Rule(ERule.PRIMARY, o => o
                 .WithT(EToken.NUMBER).Once()));
             Rule.AddRule(new Rule(ERule.PRIMARY, o => o
