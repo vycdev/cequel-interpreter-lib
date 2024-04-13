@@ -343,29 +343,34 @@ namespace Interpreter_lib.Parser
             if (_isTSide && !_hasMatchedW)
                 return this;
 
+            bool hasMatchedAtLeastOnce = false; 
+            bool isMatchingAtLeastOnce;
+
             if (_currentTokensToMatch.Count() > 0)
             {
-                var ok = false; 
+                do
+                {
+                    isMatchingAtLeastOnce = false;
                 foreach (EToken token in _currentTokensToMatch)
                 {
-                    while (_tokens[_currentTokenIndex].Type == token)
+                        if (_tokens[_currentTokenIndex].Type == token)
                     {
                         AddToTree(_tokens[_currentTokenIndex]);
                         _currentTokenIndex++;
-                        ok = true;
+                            hasMatchedAtLeastOnce = true;
+                            isMatchingAtLeastOnce = true;
                     }
                 }
-
-                if (ok && _isWSide)
-                    _hasMatchedW = true;
+                } while (isMatchingAtLeastOnce);
             }
             else if (_currentRulesToMatch.Count() > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
                 Node node = new(_rule);
-                var ok = false; 
+
                 do
                 {
+                    isMatchingAtLeastOnce = false;
                     foreach (Rule currentRule in currentRules)
                     {
                         node = currentRule.Evaluate(_tokens, _currentTokenIndex);
@@ -374,14 +379,15 @@ namespace Interpreter_lib.Parser
                         {
                             AddToTree(node);
                             _currentTokenIndex += currentRule._currentTokenIndex;
-                            ok = true;
+                            hasMatchedAtLeastOnce = true;
+                            isMatchingAtLeastOnce = true;
                         }
+                        }
+                } while (isMatchingAtLeastOnce);
                     }
-                } while (!node.IsEmpty);
 
-                if (ok && _isWSide)
+            if (hasMatchedAtLeastOnce && _isWSide)
                     _hasMatchedW = true;
-            }
 
             return this;
         }
