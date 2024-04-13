@@ -450,13 +450,7 @@ namespace Interpreter_lib.Parser
 
         public static List<Rule> GetRules(List<ERule> rules)
         {
-            var list = new List<Rule>();
-            foreach (ERule rule in rules)
-            {
-                list.AddRange(_rules.Where(r => r._rule == rule).Select(r => (Rule)r.Clone()).ToList());
-            }
-
-            return list;
+            return new List<Rule>(_rules.Where(r => rules.Contains(r._rule)).Select(r => (Rule)r.Clone()).ToList());
         }
 
         public static void AddRule(Rule rule)
