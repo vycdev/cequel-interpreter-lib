@@ -22,22 +22,25 @@ namespace Interpreter_lib.Parser
             // ROOT 
             Rule.AddRule(new Rule(ERule.ROOT, o => o
                 .WithT(EToken.END_OF_LINE).Exclude().ZeroOrMore()
-                .ThenR(ERule.INSTRUCTION).NeverHoist().ZeroOrMore()
+                .ThenR(ERule.STATEMENT).ZeroOrMore()
                 .ThenT(EToken.END_OF_FILE).Exclude().Once()));
 
-            // Instructions 
-            //Rule.AddRule(new Rule(ERule.INSTRUCTION, o => o
-            //     .WithR(ERule.EXPRESSION).NeverHoist().Once()
-            //     .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()));
-
-            Rule.AddRule(new Rule(ERule.INSTRUCTION, o => o
-                .WithR(ERule.EXPRESSION, ERule.SIMPLE_CONDITIONAL).NeverHoist().Once()
-                .ThenR(ERule.INSTRUCTION).NeverHoist().Once()));
-            Rule.AddRule(new Rule(ERule.INSTRUCTION, o => o
-                .WithT(EToken.END_OF_LINE).Exclude().Once()));
-
+            // STATEMENT
+            Rule.AddRule(new Rule(ERule.STATEMENT, o => o
+                .WithR(
+                    ERule.EXPRESSION, 
+                    ERule.SIMPLE_CONDITIONAL
+                ).NeverHoist().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()));          
+            
+            // SIMPLE_CONDITIONAL
             Rule.AddRule(new Rule(ERule.SIMPLE_CONDITIONAL, o => o
                 .WithT(EToken.IF).Exclude().Once()));
+
+            // PRINT
+            Rule.AddRule(new Rule(ERule.PRINT, o => o
+                .WithT(EToken.WRITE).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()));
 
             // Expression
             Rule.AddRule(new Rule(ERule.EXPRESSION, o => o
@@ -98,7 +101,7 @@ namespace Interpreter_lib.Parser
             Rule.AddLTRBinaryOperatorRule(ERule.MODULUS, ERule.SUBSEQUENT_MODULUS, ERule.POWER, EToken.MODULUS);
 
             // POWER, SUBSEQUENT_POWER,
-            Rule.AddLTRBinaryOperatorRule(ERule.POWER, ERule.SUBSEQUENT_POWER, ERule.UNARY, EToken.POWER);
+            Rule.AddLTRBinaryOperatorRule(ERule.POWER, ERule.SUBSEQUENT_POWER, ERule.UNARY_MINUS, EToken.POWER);
 
             // UNARY
             //Rule.AddRule(new Rule(ERule.UNARY_MINUS, o => o
@@ -120,7 +123,7 @@ namespace Interpreter_lib.Parser
             //    .WithT(EToken.MINUS, EToken.PLUS, EToken.NOT, EToken.BITWISE_NOT).Once()
             //    .ThenR(ERule.UNARY).NeverHoist().Once()));
             //Rule.AddRule(new Rule(ERule.UNARY, o => o
-            //    .WithR(ERule.PRIMARY).Once()));
+            //    .WithR(ERule.PRIMARY).Once())); 
 
             // UNARY_MINUS
             Rule.AddRTLUnaryOperator(ERule.UNARY_MINUS, ERule.UNARY_PLUS, EToken.MINUS);

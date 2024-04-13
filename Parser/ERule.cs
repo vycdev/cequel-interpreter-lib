@@ -10,7 +10,7 @@ namespace Interpreter_lib.Parser
     {
         ROOT, 
 
-        INSTRUCTION,
+        STATEMENT,
 
         EXPRESSION,
         PRIMARY,
@@ -46,5 +46,6 @@ namespace Interpreter_lib.Parser
         GROUP,
 
         SIMPLE_CONDITIONAL,
+        PRINT,
     }
 }
