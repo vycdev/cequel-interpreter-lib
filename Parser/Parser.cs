@@ -19,20 +19,37 @@ namespace Interpreter_lib.Parser
             _tokens = tokens;
             _tree = new Node(_rootRule);
 
-            // ROOT 
-            Rule.AddRule(new Rule(ERule.ROOT, o => o
-                .WithT(EToken.END_OF_LINE).Exclude().ZeroOrMore()
-                .ThenR(ERule.STATEMENT).ZeroOrMore()
-                .ThenT(EToken.END_OF_FILE).Exclude().Once()));
+            //// ROOT 
+            //Rule.AddRule(new Rule(_rootRule, o => o
+            //    .WithR(ERule.STATEMENT).ZeroOrMore()
+            //    .ThenT(EToken.END_OF_FILE).Once()));
 
-            // STATEMENT
+            //// STATEMENT
+            //Rule.AddRule(new Rule(ERule.STATEMENT, o => o
+            //    .WithR(
+            //        ERule.EXPRESSION, 
+            //        ERule.SIMPLE_CONDITIONAL
+            //    ).NeverHoist().Once()
+            //    .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()));
+            //    
+
+            Rule.AddRule(new Rule(_rootRule, o => o
+                .WithR(ERule.STATEMENT).Hoist().Once()));
+
             Rule.AddRule(new Rule(ERule.STATEMENT, o => o
                 .WithR(
-                    ERule.EXPRESSION, 
+                    ERule.EXPRESSION,
                     ERule.SIMPLE_CONDITIONAL
                 ).NeverHoist().Once()
-                .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()));          
-            
+                .ThenR(ERule.SUBSEQUENT_STATEMENT).Hoist().Once()));
+
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o 
+                .WithT(EToken.END_OF_LINE).Exclude().AtLeastOnce()
+                .ThenR(ERule.STATEMENT).Hoist().Once()));
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o 
+                .WithT(EToken.END_OF_LINE).Exclude().ZeroOrMore()
+                .ThenT(EToken.END_OF_FILE).Exclude().Once()));
+
             // SIMPLE_CONDITIONAL
             Rule.AddRule(new Rule(ERule.SIMPLE_CONDITIONAL, o => o
                 .WithT(EToken.IF).Exclude().Once()));
@@ -101,41 +118,33 @@ namespace Interpreter_lib.Parser
             Rule.AddLTRBinaryOperatorRule(ERule.MODULUS, ERule.SUBSEQUENT_MODULUS, ERule.POWER, EToken.MODULUS);
 
             // POWER, SUBSEQUENT_POWER,
-            Rule.AddLTRBinaryOperatorRule(ERule.POWER, ERule.SUBSEQUENT_POWER, ERule.UNARY_MINUS, EToken.POWER);
-
-            // UNARY
-            //Rule.AddRule(new Rule(ERule.UNARY_MINUS, o => o
-            //    .WithT(EToken.MINUS).Once()));
-            //Rule.AddRule(new Rule(ERule.UNARY_PLUS, o => o
-            //    .WithT(EToken.PLUS).Once()));
-            //Rule.AddRule(new Rule(ERule.UNARY_NOT, o => o
-            //    .WithT(EToken.NOT).Once()));
-            //Rule.AddRule(new Rule(ERule.UNARY_BITWISE_NOT, o => o
-            //    .WithT(EToken.BITWISE_NOT).Once()));
-
-            //Rule.AddRule(new Rule(ERule.UNARY, o => o
-            //    .WithR(ERule.UNARY_MINUS, ERule.UNARY_PLUS, ERule.UNARY_BITWISE_NOT, ERule.UNARY_NOT).NeverHoist().Once()
-            //    .ThenR(ERule.UNARY).Once()));
-            //Rule.AddRule(new Rule(ERule.UNARY, o => o
-            //    .WithR(ERule.PRIMARY).Once()));
-
-            //Rule.AddRule(new Rule(ERule.UNARY, o => o
-            //    .WithT(EToken.MINUS, EToken.PLUS, EToken.NOT, EToken.BITWISE_NOT).Once()
-            //    .ThenR(ERule.UNARY).NeverHoist().Once()));
-            //Rule.AddRule(new Rule(ERule.UNARY, o => o
-            //    .WithR(ERule.PRIMARY).Once())); 
+            Rule.AddLTRBinaryOperatorRule(ERule.POWER, ERule.SUBSEQUENT_POWER, ERule.UNARY, EToken.POWER);
 
             // UNARY_MINUS
-            Rule.AddRTLUnaryOperator(ERule.UNARY_MINUS, ERule.UNARY_PLUS, EToken.MINUS);
+            Rule.AddRule(new Rule(ERule.UNARY_MINUS, o => o
+                .WithT(EToken.MINUS).Exclude().Once()
+                .ThenR(ERule.UNARY).Once()));
 
-            // UNARY_PLUS,
-            Rule.AddRTLUnaryOperator(ERule.UNARY_PLUS, ERule.UNARY_NOT, EToken.PLUS);
+            // UNARY_PLUS
+            Rule.AddRule(new Rule(ERule.UNARY_PLUS, o => o
+                .WithT(EToken.PLUS).Exclude().Once()
+                .ThenR(ERule.UNARY).Once()));
+            
+            // UNARY_NOT
+            Rule.AddRule(new Rule(ERule.UNARY_NOT, o => o
+                .WithT(EToken.NOT).Exclude().Once()
+                .ThenR(ERule.UNARY).Once()));
+            
+            // UNARY_BITWISE_NOT
+            Rule.AddRule(new Rule(ERule.UNARY_BITWISE_NOT, o => o
+                .WithT(EToken.BITWISE_NOT).Exclude().Once()
+                .ThenR(ERule.UNARY).Once()));
 
-            // UNARY_NOT,
-            Rule.AddRTLUnaryOperator(ERule.UNARY_NOT, ERule.UNARY_BITWISE_NOT, EToken.NOT);
-
-            // UNARY_BITWISE_NOT,
-            Rule.AddRTLUnaryOperator(ERule.UNARY_BITWISE_NOT, ERule.PRIMARY, EToken.BITWISE_NOT);
+            // UNARY
+            Rule.AddRule(new Rule(ERule.UNARY, o => o
+                .WithR(ERule.UNARY_MINUS, ERule.UNARY_PLUS, ERule.UNARY_BITWISE_NOT, ERule.UNARY_NOT).NeverHoist().Once()));
+            Rule.AddRule(new Rule(ERule.UNARY, o => o
+                .WithR(ERule.PRIMARY).Once()));
 
             // FLOOR
             Rule.AddRule(new Rule(ERule.FLOOR, o => o

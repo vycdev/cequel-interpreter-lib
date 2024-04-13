@@ -10,10 +10,12 @@ namespace Interpreter_lib.Parser
     {
         ROOT, 
 
-        STATEMENT,
+        STATEMENT, SUBSEQUENT_STATEMENT,
+        
+        SIMPLE_CONDITIONAL,
+        PRINT,
 
         EXPRESSION,
-        PRIMARY,
 
         LOGICAL_OR, SUBSEQUENT_LOGICAL_OR,
         LOGICAL_AND, SUBSEQUENT_LOGICAL_AND,
@@ -35,17 +37,12 @@ namespace Interpreter_lib.Parser
         MODULUS, SUBSEQUENT_MODULUS,
         POWER, SUBSEQUENT_POWER,
         
-        UNARY,
-        UNARY_MINUS, 
-        UNARY_PLUS,
-        UNARY_NOT,
-        UNARY_BITWISE_NOT,
+        UNARY, 
+        UNARY_MINUS, UNARY_PLUS, UNARY_NOT, UNARY_BITWISE_NOT,
 
-        FLOOR,
+        PRIMARY,
         
+        FLOOR,
         GROUP,
-
-        SIMPLE_CONDITIONAL,
-        PRINT,
     }
 }
