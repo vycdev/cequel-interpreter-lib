@@ -474,15 +474,6 @@ namespace Interpreter_lib.Parser
                 .ThenR(nextRuleName).Once()));
         }
 
-        public static void AddRTLUnaryOperator(ERule ruleName, ERule nextRuleName, EToken token)
-        {
-            AddRule(new Rule(ruleName, o => o
-                .WithT(token).Exclude().Once()
-                .ThenR(ruleName).NeverHoist().Once()));
-            AddRule(new Rule(ruleName, o => o
-                .WithR(nextRuleName).Once()));
-        } 
-
         #endregion
 
         #region OTHER
