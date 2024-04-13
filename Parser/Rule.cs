@@ -270,8 +270,6 @@ namespace Interpreter_lib.Parser
             if (_isTSide && !_hasMatchedW)
                 return this;
 
-            bool hasMatchedOnce = false;
-
             if (_currentTokensToMatch.Count > 0)
             {
                 foreach (EToken token in _currentTokensToMatch)
@@ -280,7 +278,6 @@ namespace Interpreter_lib.Parser
                     {
                         AddToTree(_tokens[_currentTokenIndex]);
                         _currentTokenIndex++;
-                        hasMatchedOnce = true;
                         break;
                     }
                 }
@@ -297,13 +294,12 @@ namespace Interpreter_lib.Parser
                     {
                         AddToTree(node);
                         _currentTokenIndex += currentRule._currentTokenIndex;
-                        hasMatchedOnce = true;
                         break;
                     }
                 }
             }
 
-            if (hasMatchedOnce && _isWSide)
+            if (_isWSide)
                 _hasMatchedW = true;
 
             return this;
@@ -359,7 +355,7 @@ namespace Interpreter_lib.Parser
                 }
             }
 
-            if (hasMatchedAtLeastOnce && _isWSide)
+            if (_isWSide)
                 _hasMatchedW = true;
 
             return this;
