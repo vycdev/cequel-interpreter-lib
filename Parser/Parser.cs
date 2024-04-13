@@ -26,7 +26,7 @@ namespace Interpreter_lib.Parser
 
             // Instructions 
             Rule.AddRule(new Rule(ERule.INSTRUCTION, o => o
-                 .WithT(EToken.END_OF_LINE).AtLeastOnce()));
+                 .WithT(EToken.END_OF_LINE).Exclude().AtLeastOnce()));
             Rule.AddRule(new Rule(ERule.INSTRUCTION, o => o
                  .WithR(ERule.EXPRESSION).NeverHoist().Once()
                  .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()));
@@ -92,18 +92,25 @@ namespace Interpreter_lib.Parser
             // POWER, SUBSEQUENT_POWER,
             Rule.AddLTRBinaryOperatorRule(ERule.POWER, ERule.SUBSEQUENT_POWER, ERule.UNARY, EToken.POWER);
 
-            Rule.AddRule(new Rule(ERule.UNARY_MINUS, o => o
-                .WithT(EToken.MINUS).Once()));
-            Rule.AddRule(new Rule(ERule.UNARY_PLUS, o => o
-                .WithT(EToken.PLUS).Once()));
-            Rule.AddRule(new Rule(ERule.UNARY_NOT, o => o
-                .WithT(EToken.NOT).Once()));
-            Rule.AddRule(new Rule(ERule.UNARY_BITWISE_NOT, o => o
-                .WithT(EToken.BITWISE_NOT).Once()));
+            // UNARY
+            //Rule.AddRule(new Rule(ERule.UNARY_MINUS, o => o
+            //    .WithT(EToken.MINUS).Once()));
+            //Rule.AddRule(new Rule(ERule.UNARY_PLUS, o => o
+            //    .WithT(EToken.PLUS).Once()));
+            //Rule.AddRule(new Rule(ERule.UNARY_NOT, o => o
+            //    .WithT(EToken.NOT).Once()));
+            //Rule.AddRule(new Rule(ERule.UNARY_BITWISE_NOT, o => o
+            //    .WithT(EToken.BITWISE_NOT).Once()));
+
+            //Rule.AddRule(new Rule(ERule.UNARY, o => o
+            //    .WithR(ERule.UNARY_MINUS, ERule.UNARY_PLUS, ERule.UNARY_BITWISE_NOT, ERule.UNARY_NOT).NeverHoist().Once()
+            //    .ThenR(ERule.UNARY).Once()));
+            //Rule.AddRule(new Rule(ERule.UNARY, o => o
+            //    .WithR(ERule.PRIMARY).Once()));
 
             Rule.AddRule(new Rule(ERule.UNARY, o => o
-                .WithR(ERule.UNARY_MINUS, ERule.UNARY_PLUS, ERule.UNARY_BITWISE_NOT, ERule.UNARY_NOT).NeverHoist().Once()
-                .ThenR(ERule.UNARY).Once()));
+                .WithT(EToken.MINUS, EToken.PLUS, EToken.NOT, EToken.BITWISE_NOT).Once()
+                .ThenR(ERule.UNARY).NeverHoist().Once()));
             Rule.AddRule(new Rule(ERule.UNARY, o => o
                 .WithR(ERule.PRIMARY).Once()));
 

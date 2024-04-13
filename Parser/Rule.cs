@@ -1,4 +1,5 @@
 ﻿using Interpreter_lib.Tokenizer;
+using System.Data;
 using System.Numerics;
 using System.Timers;
 
@@ -147,7 +148,7 @@ namespace Interpreter_lib.Parser
             if (_isTSide && !_hasMatchedW)
                 return this;
 
-            if (_currentTokensToMatch.Count() > 0)
+            if (_currentTokensToMatch.Count > 0)
             {
                 foreach (EToken token in _currentTokensToMatch)
                 {
@@ -163,7 +164,7 @@ namespace Interpreter_lib.Parser
                     }
                 }
             }
-            else if (_currentRulesToMatch.Count() > 0)
+            else if (_currentRulesToMatch.Count > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
                 Node node;
@@ -207,27 +208,27 @@ namespace Interpreter_lib.Parser
             if (_isTSide && !_hasMatchedW)
                 return this;
 
-            bool ok = false;
+            bool hasMatchedAtLeastOnce = false;
+            bool isMatchingAtLeastOnce;
 
-            if (_currentTokensToMatch.Count() > 0)
+            if (_currentTokensToMatch.Count > 0)
             {
-                foreach (EToken token in _currentTokensToMatch)
+                do
                 {
-                    while (_tokens[_currentTokenIndex].Type == token)
+                    isMatchingAtLeastOnce = false;
+                    foreach (EToken token in _currentTokensToMatch)
                     {
-                        AddToTree(_tokens[_currentTokenIndex]);
-                        _currentTokenIndex++;
-                        ok = true;
+                        if (_tokens[_currentTokenIndex].Type == token)
+                        {
+                            AddToTree(_tokens[_currentTokenIndex]);
+                            _currentTokenIndex++;
+                            hasMatchedAtLeastOnce = true;
+                            isMatchingAtLeastOnce = true;
+                        }
                     }
-                }
-
-                if (ok && _isWSide)
-                    _hasMatchedW = true;
-                 
-                if (_hasMatchedW && !ok && _lastToMatch)
-                    throw new ParsingException(this, "Token has matched less than once.");
+                } while (isMatchingAtLeastOnce);
             }
-            else if (_currentRulesToMatch.Count() > 0)
+            else if (_currentRulesToMatch.Count > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
                 Node node = new(_rule);
@@ -235,6 +236,7 @@ namespace Interpreter_lib.Parser
 
                 do
                 {
+                    isMatchingAtLeastOnce = false;
                     for (int i = 0; i < currentRules.Count; i++)
                     {
                         currentRule = currentRules[i];
@@ -247,17 +249,18 @@ namespace Interpreter_lib.Parser
                         {
                             AddToTree(node);
                             _currentTokenIndex += currentRule._currentTokenIndex;
-                            ok = true;
+                            hasMatchedAtLeastOnce = true;
+                            isMatchingAtLeastOnce = true;
                         }
                     }
-                } while (!node.IsEmpty);
-
-                if (_hasMatchedW && !ok && _lastToMatch)
-                    throw new ParsingException(this, "Rule has matched less than once.");
-
-                if (ok && _isWSide)
-                    _hasMatchedW = true;
+                } while (isMatchingAtLeastOnce);
             }
+
+            if (_hasMatchedW && !hasMatchedAtLeastOnce && _lastToMatch)
+                throw new ParsingException(this, $"{(_currentRulesToMatch.Count > 0 ? "Rule" : "Token")} has matched less than once.");
+
+            if (hasMatchedAtLeastOnce && _isWSide)
+                _hasMatchedW = true;
 
             return this;
         }
@@ -271,7 +274,7 @@ namespace Interpreter_lib.Parser
             if (_isTSide && !_hasMatchedW)
                 return this;
 
-            if (_currentTokensToMatch.Count() > 0)
+            if (_currentTokensToMatch.Count > 0)
             {
                 var ok = false;
                 foreach (EToken token in _currentTokensToMatch)
@@ -293,7 +296,7 @@ namespace Interpreter_lib.Parser
                 if(ok && _isWSide)
                     _hasMatchedW = true;
             }
-            else if (_currentRulesToMatch.Count() > 0)
+            else if (_currentRulesToMatch.Count > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
                 Node node;
@@ -322,8 +325,8 @@ namespace Interpreter_lib.Parser
 
                         if (!node.IsEmpty && _hasMatchedW && _lastToMatch)
                             throw new ParsingException(this, "Rule has matched more than once.");
-                        }
                     }
+                }
 
                 if (ok && _isWSide)
                     _hasMatchedW = true;
@@ -344,24 +347,24 @@ namespace Interpreter_lib.Parser
             bool hasMatchedAtLeastOnce = false; 
             bool isMatchingAtLeastOnce;
 
-            if (_currentTokensToMatch.Count() > 0)
+            if (_currentTokensToMatch.Count > 0)
             {
                 do
                 {
                     isMatchingAtLeastOnce = false;
-                foreach (EToken token in _currentTokensToMatch)
-                {
-                        if (_tokens[_currentTokenIndex].Type == token)
+                    foreach (EToken token in _currentTokensToMatch)
                     {
-                        AddToTree(_tokens[_currentTokenIndex]);
-                        _currentTokenIndex++;
+                        if (_tokens[_currentTokenIndex].Type == token)
+                        {
+                            AddToTree(_tokens[_currentTokenIndex]);
+                            _currentTokenIndex++;
                             hasMatchedAtLeastOnce = true;
                             isMatchingAtLeastOnce = true;
+                        }
                     }
-                }
                 } while (isMatchingAtLeastOnce);
             }
-            else if (_currentRulesToMatch.Count() > 0)
+            else if (_currentRulesToMatch.Count > 0)
             {
                 List<Rule> currentRules = GetRules(_currentRulesToMatch);
                 Node node = new(_rule);
@@ -380,12 +383,12 @@ namespace Interpreter_lib.Parser
                             hasMatchedAtLeastOnce = true;
                             isMatchingAtLeastOnce = true;
                         }
-                        }
-                } while (isMatchingAtLeastOnce);
                     }
+                } while (isMatchingAtLeastOnce);
+            }
 
             if (hasMatchedAtLeastOnce && _isWSide)
-                    _hasMatchedW = true;
+                _hasMatchedW = true;
 
             return this;
         }
@@ -429,7 +432,7 @@ namespace Interpreter_lib.Parser
         }
 
         private void AddToTree(Node node)
-        {
+        {                
             if ((_isHoisted 
                 || node.GetRule() == _rule 
                 || (node.TokenCount == 1 && node.NodeCount == 1) 
