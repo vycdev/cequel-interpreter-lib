@@ -27,7 +27,9 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.STATEMENT, o => o
                 .WithR(
                     ERule.EXPRESSION,
-                    ERule.SIMPLE_CONDITIONAL
+                    ERule.SIMPLE_CONDITIONAL,
+                    ERule.ASSIGNMENT,
+                    ERule.PRINT
                 ).NeverHoist().Once()
                 .ThenR(ERule.SUBSEQUENT_STATEMENT).Hoist().Once()));
 
@@ -42,10 +44,22 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.SIMPLE_CONDITIONAL, o => o
                 .WithT(EToken.IF).Exclude().Once()));
 
+            // ASSIGNMENT
+            Rule.AddRule(new Rule(ERule.ASSIGNMENT, o => o
+                .WithT(EToken.IDENTIFIER).Once()
+                .ThenT(EToken.ASSIGN).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()));
+
             // PRINT
             Rule.AddRule(new Rule(ERule.PRINT, o => o
                 .WithT(EToken.WRITE).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
+                .ThenR(ERule.SUBSEQUENT_PRINT).Hoist().ZeroOrMore()));
+
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_PRINT, o => o
+                .WithT(EToken.COMMA).Exclude().Once()
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()));
+
 
             // Expression
             Rule.AddRule(new Rule(ERule.EXPRESSION, o => o

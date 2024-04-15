@@ -13,7 +13,7 @@ namespace Interpreter_lib.Parser
         STATEMENT, SUBSEQUENT_STATEMENT,
         
         SIMPLE_CONDITIONAL,
-        PRINT,
+        PRINT, SUBSEQUENT_PRINT,
 
         ASSIGNMENT,
 
