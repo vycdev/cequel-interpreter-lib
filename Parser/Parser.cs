@@ -26,7 +26,7 @@ namespace Interpreter_lib.Parser
             // STATEMENT
             Rule.AddRule(new Rule(ERule.STATEMENT, o => o
                 .WithR(
-                    ERule.EXPRESSION,
+                    ERule.EXPRESSION, // TODO: Remove rule from being an individual statement.
                     ERule.SIMPLE_CONDITIONAL,
                     ERule.ASSIGNMENT,
                     ERule.PRINT
