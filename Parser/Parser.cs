@@ -19,23 +19,11 @@ namespace Interpreter_lib.Parser
             _tokens = tokens;
             _AST = new Node(_rootRule);
 
-            //// ROOT 
-            //Rule.AddRule(new Rule(_rootRule, o => o
-            //    .WithR(ERule.STATEMENT).ZeroOrMore()
-            //    .ThenT(EToken.END_OF_FILE).Once()));
-
-            //// STATEMENT
-            //Rule.AddRule(new Rule(ERule.STATEMENT, o => o
-            //    .WithR(
-            //        ERule.EXPRESSION, 
-            //        ERule.SIMPLE_CONDITIONAL
-            //    ).NeverHoist().Once()
-            //    .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()));
-            //    
-
+            // ROOT 
             Rule.AddRule(new Rule(_rootRule, o => o
                 .WithR(ERule.STATEMENT).Hoist().Once()));
 
+            // STATEMENT
             Rule.AddRule(new Rule(ERule.STATEMENT, o => o
                 .WithR(
                     ERule.EXPRESSION,
@@ -161,6 +149,8 @@ namespace Interpreter_lib.Parser
             // Primary 
             Rule.AddRule(new Rule(ERule.PRIMARY, o => o
                 .WithT(EToken.NUMBER).Once()));
+            Rule.AddRule(new Rule(ERule.PRIMARY, o => o
+                .WithT(EToken.STRING).Once()));
             Rule.AddRule(new Rule(ERule.PRIMARY, o => o
                 .WithT(EToken.IDENTIFIER).Once()));
             Rule.AddRule(new Rule(ERule.PRIMARY, o => o

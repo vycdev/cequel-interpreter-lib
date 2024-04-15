@@ -15,6 +15,8 @@ namespace Interpreter_lib.Parser
         SIMPLE_CONDITIONAL,
         PRINT,
 
+        ASSIGNMENT,
+
         EXPRESSION,
 
         LOGICAL_OR, SUBSEQUENT_LOGICAL_OR,
