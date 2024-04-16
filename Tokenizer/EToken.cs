@@ -29,5 +29,6 @@ namespace Interpreter_lib.Tokenizer
         END_OF_LINE, // end of line, (semicolon or end of line are both valid)
         END_OF_FILE, // end of file
         TAB, // tab
+        INDENT, DEDENT, // indentation
     }
 }

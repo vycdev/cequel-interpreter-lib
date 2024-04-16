@@ -24,11 +24,79 @@ namespace Interpreter_lib.Tokenizer
             if (language != null)
                 _language = language;
 
+            // Generate list of tokens
             do
             {
                 Tokens.Add(GetNextToken());
                 Advance();
             } while (Tokens.Last().Type != Interpreter_lib.Tokenizer.EToken.END_OF_FILE);
+
+            // Split tokens by line
+            List<List<Token>> lines = new();
+            List<Token> line = new();
+            foreach (Token token in Tokens)
+            {
+                if (token.Type == EToken.END_OF_LINE || token.Type == EToken.END_OF_FILE)
+                {
+                    line.Add(token);
+                    lines.Add(line);
+                    line = new();
+                }
+                else
+                {
+                    line.Add(token);
+                }
+            }
+
+            // Insert indent and dedent tokens
+            List<Token> newTokens = new();
+            int indentLevel = 0;
+
+            foreach (List<Token> l in lines)
+            {
+                int indent = 0;
+                if (l.Where(t => t.Type != EToken.TAB && t.Type != EToken.END_OF_LINE && t.Type != EToken.END_OF_FILE).Count() == 0)
+                    continue; // Ignore empty lines
+
+                // Calculate indent level
+                foreach (Token token in l)
+                {
+                    if (token.Type == EToken.TAB)
+                        indent++;
+                    else
+                        break;
+                }
+
+                // Insert indent or dedent tokens
+                if (indent > indentLevel)
+                {
+                    newTokens.Add(new Token(EToken.INDENT, "INDENT"));
+                    indentLevel = indent;
+                }
+                else if (indent < indentLevel)
+                {
+                    newTokens.Add(new Token(EToken.DEDENT, "DEDENT"));
+                    indentLevel = indent;
+                }
+
+                // Add tokens to the new list
+                newTokens.AddRange(l);
+            }
+
+            // Add dedent tokens at the end of the file
+            if (indentLevel > 0)
+            {
+                newTokens.RemoveAt(newTokens.Count - 1);
+
+                for (int i = 0; i < indentLevel; i++)
+                {
+                    newTokens.Add(new Token(EToken.DEDENT, "DEDENT"));
+                }
+
+                newTokens.Add(new Token(EToken.END_OF_FILE, "\\0"));
+            }
+
+            Tokens = newTokens.Where(t => t.Type != EToken.TAB).ToList();
         }
 
         private bool Advance()
@@ -139,13 +207,13 @@ namespace Interpreter_lib.Tokenizer
                         return new Token(EToken.COMMA, _currentChar.ToString());
 
                     case '\r':
-                        if(Peek() == '\n')
+                        if (Peek() == '\n')
                         {
                             Advance();
                             return new Token(EToken.END_OF_LINE, "\\r\\n");
                         }
                         return new Token(EToken.END_OF_LINE, "\\r");
-                    
+
                     case '\n':
                         return new Token(EToken.END_OF_LINE, "\\n");
 
@@ -267,16 +335,16 @@ namespace Interpreter_lib.Tokenizer
                         {
                             Advance();
                             _accumulator += _currentChar;
-                        } while (!"\"".Contains(Peek()) || 
-                                ( 
-                                    _currentChar.ToString() + Peek() == "\\\"" || 
-                                    Peek().ToString() + Peek(1) == "\\\"" || 
+                        } while (!"\"".Contains(Peek()) ||
+                                (
+                                    _currentChar.ToString() + Peek() == "\\\"" ||
+                                    Peek().ToString() + Peek(1) == "\\\"" ||
                                     Peek(-1) + _currentChar.ToString() == "\\\""
                                 )
                         );
-                        
+
                         Advance();
-                        
+
                         return new Token(EToken.STRING, _accumulator);
 
                     default:
@@ -286,21 +354,21 @@ namespace Interpreter_lib.Tokenizer
                         foreach (PropertyInfo property in properties)
                         {
                             var propertyValue = property.GetValue(_language)?.ToString() ?? string.Empty;
-                         
-                            if(propertyValue == _accumulator)
+
+                            if (propertyValue == _accumulator)
                             {
                                 break;
                             }
 
                             if (propertyValue.Split(" ").Length > 1)
                                 foreach (string word in propertyValue.Split(" "))
-                                    if(_accumulator.Contains(word))
+                                    if (_accumulator.Contains(word))
                                     {
                                         continueAccumulation = true;
                                         break;
                                     }
 
-                            if(continueAccumulation)
+                            if (continueAccumulation)
                                 break;
                         }
 
@@ -329,7 +397,7 @@ namespace Interpreter_lib.Tokenizer
                             }
                         }
 
-                            if (isNumber(_accumulator))
+                        if (isNumber(_accumulator))
                             return new Token(EToken.NUMBER, _accumulator);
 
 
