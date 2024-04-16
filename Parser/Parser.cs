@@ -37,7 +37,7 @@ namespace Interpreter_lib.Parser
 
             // SUBSEQUENT_STATEMENT
             Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o
-                .WithR(ERule.LINE_ENDING).AtLeastOnce()
+                .WithR(ERule.LINE_ENDING).Hoist().AtLeastOnce()
                 .ThenR(ERule.STATEMENT).Hoist().Once()));
             Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o
                 .WithT(EToken.TAB).Exclude().ZeroOrMore()
