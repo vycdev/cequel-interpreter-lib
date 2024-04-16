@@ -23,6 +23,8 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(_rootRule, o => o
                 .WithR(ERule.STATEMENT).Hoist().Once()));
 
+            #region STATEMENTS
+
             // STATEMENT
             Rule.AddRule(new Rule(ERule.STATEMENT, o => o
                 .WithR(
@@ -33,6 +35,7 @@ namespace Interpreter_lib.Parser
                 ).NeverHoist().Once()
                 .ThenR(ERule.SUBSEQUENT_STATEMENT).Hoist().Once()));
 
+            // SUBSEQUENT_STATEMENT
             Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o
                 .WithR(ERule.LINE_ENDING).AtLeastOnce()
                 .ThenR(ERule.STATEMENT).Hoist().Once()));
@@ -42,6 +45,7 @@ namespace Interpreter_lib.Parser
                 .ThenT(EToken.TAB).Exclude().ZeroOrMore()
                 .ThenT(EToken.END_OF_FILE).Exclude().Once()));
 
+            // LINE_ENDING
             Rule.AddRule(new Rule(ERule.LINE_ENDING, o => o
                 .WithT(EToken.TAB).Exclude().AtLeastOnce() 
                 .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()
@@ -49,6 +53,10 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.LINE_ENDING, o => o
                 .WithT(EToken.END_OF_LINE).Exclude().AtLeastOnce()
                 .ThenT(EToken.TAB).Exclude().ZeroOrMore()));
+
+            #endregion
+
+            #region INSTRUCTIONS
 
             // SIMPLE_CONDITIONAL
             Rule.AddRule(new Rule(ERule.SIMPLE_CONDITIONAL, o => o
@@ -71,7 +79,10 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.SUBSEQUENT_PRINT, o => o
                 .WithT(EToken.COMMA).Exclude().Once()
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()));
+            
+            #endregion
 
+            #region EXPRESSIONS
 
             // Expression
             Rule.AddRule(new Rule(ERule.EXPRESSION, o => o
@@ -183,6 +194,8 @@ namespace Interpreter_lib.Parser
                 .WithR(ERule.GROUP).Hoist().Once()));            
             Rule.AddRule(new Rule(ERule.PRIMARY, o => o
                 .WithR(ERule.FLOOR).NeverHoist().Once()));
+
+            #endregion
         }
 
         public void Parse()
