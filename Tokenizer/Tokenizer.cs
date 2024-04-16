@@ -76,6 +76,7 @@ namespace Interpreter_lib.Tokenizer
                 else if (indent < indentLevel)
                 {
                     newTokens.Add(new Token(EToken.DEDENT, "DEDENT"));
+                    newTokens.Add(new Token(EToken.END_OF_LINE, "\\n"));
                     indentLevel = indent;
                 }
 
@@ -95,6 +96,7 @@ namespace Interpreter_lib.Tokenizer
                 for (int i = 0; i < indentLevel; i++)
                 {
                     newTokens.Add(new Token(EToken.DEDENT, "DEDENT"));
+                    newTokens.Add(new Token(EToken.END_OF_LINE, "\\n"));
                 }
             }
 
