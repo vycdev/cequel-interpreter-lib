@@ -21,7 +21,7 @@ namespace Interpreter_lib.Parser
 
             // ROOT 
             Rule.AddRule(new Rule(_rootRule, o => o
-                .WithR(ERule.STATEMENT).Hoist().Once()));
+                .WithR(ERule.STATEMENT).Hoist().AtLeastOnce()));
 
             #region STATEMENTS
 
@@ -29,40 +29,25 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.STATEMENT, o => o
                 .WithR(
                     ERule.EXPRESSION, // TODO: Remove rule from being an individual statement.
-                    ERule.SIMPLE_CONDITIONAL,
+                    ERule.IF_STATEMENT,
                     ERule.ASSIGNMENT,
                     ERule.PRINT
                 ).NeverHoist().Once()
-                .ThenR(ERule.SUBSEQUENT_STATEMENT).Hoist().Once()));
-
-            // SUBSEQUENT_STATEMENT
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o
-                .WithR(ERule.LINE_ENDING).Hoist().AtLeastOnce()
-                .ThenR(ERule.STATEMENT).Hoist().Once()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o
-                .WithT(EToken.TAB).Exclude().ZeroOrMore()
-                .ThenT(EToken.END_OF_LINE).Exclude().ZeroOrMore()
-                .ThenT(EToken.TAB).Exclude().ZeroOrMore()
-                .ThenT(EToken.END_OF_FILE).Exclude().Once()));
-
-            // LINE_ENDING
-            Rule.AddRule(new Rule(ERule.LINE_ENDING, o => o
-                .WithT(EToken.TAB).Exclude().AtLeastOnce() 
-                .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()
-                .ThenT(EToken.TAB).Exclude().ZeroOrMore()));
-            Rule.AddRule(new Rule(ERule.LINE_ENDING, o => o
-                .WithT(EToken.END_OF_LINE).Exclude().AtLeastOnce()
-                .ThenT(EToken.TAB).Exclude().ZeroOrMore()));
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()));
 
             #endregion
 
             #region INSTRUCTIONS
 
-            // SIMPLE_CONDITIONAL
-            Rule.AddRule(new Rule(ERule.SIMPLE_CONDITIONAL, o => o
+            // IF_STATEMENT
+            Rule.AddRule(new Rule(ERule.IF_STATEMENT, o => o
                 .WithT(EToken.IF).Exclude().Once()
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()
-                .ThenT(EToken.THEN).Exclude().Once()));
+                .ThenT(EToken.THEN).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenT(EToken.INDENT).Exclude().Once()
+                .ThenR(ERule.STATEMENT).AtLeastOnce()
+                .ThenT(EToken.DEDENT).Exclude().Once()));
 
             // ASSIGNMENT
             Rule.AddRule(new Rule(ERule.ASSIGNMENT, o => o

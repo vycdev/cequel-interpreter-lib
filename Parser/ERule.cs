@@ -10,10 +10,9 @@ namespace Interpreter_lib.Parser
     {
         ROOT, 
 
-        STATEMENT, SUBSEQUENT_STATEMENT,
-        LINE_ENDING,
+        STATEMENT, 
         
-        SIMPLE_CONDITIONAL,
+        IF_STATEMENT, IF_THEN_STATEMENT,
         PRINT, SUBSEQUENT_PRINT,
 
         ASSIGNMENT,
