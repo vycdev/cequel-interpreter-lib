@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Parser
 {
-    internal class ParsingException : Exception
+    public class ParsingException : Exception
     {
         public Rule? Rule { get; }
 

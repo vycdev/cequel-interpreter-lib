@@ -33,16 +33,28 @@ namespace Interpreter_lib.Parser
                 ).NeverHoist().Once()
                 .ThenR(ERule.SUBSEQUENT_STATEMENT).Hoist().Once()));
 
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o 
-                .WithT(EToken.END_OF_LINE).Exclude().AtLeastOnce()
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o
+                .WithR(ERule.LINE_ENDING).AtLeastOnce()
                 .ThenR(ERule.STATEMENT).Hoist().Once()));
-            Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o 
-                .WithT(EToken.END_OF_LINE).Exclude().ZeroOrMore()
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_STATEMENT, o => o
+                .WithT(EToken.TAB).Exclude().ZeroOrMore()
+                .ThenT(EToken.END_OF_LINE).Exclude().ZeroOrMore()
+                .ThenT(EToken.TAB).Exclude().ZeroOrMore()
                 .ThenT(EToken.END_OF_FILE).Exclude().Once()));
+
+            Rule.AddRule(new Rule(ERule.LINE_ENDING, o => o
+                .WithT(EToken.TAB).Exclude().AtLeastOnce() 
+                .ThenT(EToken.END_OF_LINE).Exclude().AtLeastOnce()
+                .ThenT(EToken.TAB).Exclude().ZeroOrMore()));
+            Rule.AddRule(new Rule(ERule.LINE_ENDING, o => o
+                .WithT(EToken.END_OF_LINE).Exclude().AtLeastOnce()
+                .ThenT(EToken.TAB).Exclude().ZeroOrMore()));
 
             // SIMPLE_CONDITIONAL
             Rule.AddRule(new Rule(ERule.SIMPLE_CONDITIONAL, o => o
-                .WithT(EToken.IF).Exclude().Once()));
+                .WithT(EToken.IF).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
+                .ThenT(EToken.THEN).Exclude().Once()));
 
             // ASSIGNMENT
             Rule.AddRule(new Rule(ERule.ASSIGNMENT, o => o

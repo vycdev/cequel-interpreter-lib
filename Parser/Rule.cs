@@ -17,8 +17,8 @@ namespace Interpreter_lib.Parser
 
         // Used for traversing the tokens array.  
         public int _currentTokenIndex { get; private set; } = 0;
-        private List<EToken> _currentTokensToMatch;
-        private List<ERule> _currentRulesToMatch;
+        public List<EToken> _expectedTokens { get; private set; }
+        public List<ERule> _expectedRules { get; private set; }
         private bool _hasMatchedW;
         private bool _isWSide = false;
         private bool _isTSide = false;
@@ -35,7 +35,7 @@ namespace Interpreter_lib.Parser
         private Action<IRuleConfiguration> _definition;
 
         // Data from which the syntax tree is created.
-        private List<Token> _tokens;
+        public List<Token> _tokens { get; private set; }
         private Node _tree;
 
         public Rule(ERule rule, Action<IRuleConfiguration> definition)
@@ -45,8 +45,8 @@ namespace Interpreter_lib.Parser
             _tree = new(_rule);
             _tokens = new();
             _hasMatchedW = false;
-            _currentTokensToMatch = new();
-            _currentRulesToMatch = new();
+            _expectedTokens = new();
+            _expectedRules = new();
         }
 
         public Node Evaluate(List<Token> tokens, int? currentTokenIndex = 0)
@@ -74,8 +74,8 @@ namespace Interpreter_lib.Parser
             _isWSide = false;
             _isTSide = false;
             _hasFullyMatched = true;
-            _currentTokensToMatch.Clear();
-            _currentRulesToMatch.Clear();
+            _expectedTokens.Clear();
+            _expectedRules.Clear();
         }
 
         #region WITH 
@@ -85,9 +85,9 @@ namespace Interpreter_lib.Parser
         {
             _isExcluded = false;
             _hasMatchedW = false;
-            _currentRulesToMatch.Clear();
-            _currentTokensToMatch.Clear();
-            _currentTokensToMatch.AddRange(tokens);
+            _expectedRules.Clear();
+            _expectedTokens.Clear();
+            _expectedTokens.AddRange(tokens);
             _isWSide = true;
             _isTSide = false;
 
@@ -100,9 +100,9 @@ namespace Interpreter_lib.Parser
             _isHoisted = false;
             _isHoistImmune = false;
             _hasMatchedW = false;
-            _currentRulesToMatch.Clear();
-            _currentTokensToMatch.Clear();
-            _currentRulesToMatch.AddRange(rules);
+            _expectedRules.Clear();
+            _expectedTokens.Clear();
+            _expectedRules.AddRange(rules);
             _isWSide = true;
             _isTSide = false;
 
@@ -115,9 +115,9 @@ namespace Interpreter_lib.Parser
         IRuleTokenConfiguration IRuleContinuationConfiguration.ThenT(params EToken[] token)
         {
             _isExcluded = false;
-            _currentRulesToMatch.Clear();
-            _currentTokensToMatch.Clear();
-            _currentTokensToMatch.AddRange(token);
+            _expectedRules.Clear();
+            _expectedTokens.Clear();
+            _expectedTokens.AddRange(token);
             _isWSide = false;
             _isTSide = true;
 
@@ -128,9 +128,9 @@ namespace Interpreter_lib.Parser
         {
             _isHoisted = false;
             _isHoistImmune = false;
-            _currentRulesToMatch.Clear();
-            _currentTokensToMatch.Clear();
-            _currentRulesToMatch.AddRange(rule);
+            _expectedRules.Clear();
+            _expectedTokens.Clear();
+            _expectedRules.AddRange(rule);
             _isWSide = false;
             _isTSide = true;
 
@@ -152,9 +152,9 @@ namespace Interpreter_lib.Parser
 
             bool hasMatchedOnce = false;
 
-            if (_currentTokensToMatch.Count > 0)
+            if (_expectedTokens.Count > 0)
             {
-                foreach (EToken token in _currentTokensToMatch)
+                foreach (EToken token in _expectedTokens)
                 {
                     if (_tokens[_currentTokenIndex].Type == token)
                     {
@@ -165,9 +165,9 @@ namespace Interpreter_lib.Parser
                     }
                 }
             }
-            else if (_currentRulesToMatch.Count > 0)
+            else if (_expectedRules.Count > 0)
             {
-                List<Rule> currentRules = GetRules(_currentRulesToMatch);
+                List<Rule> currentRules = GetRules(_expectedRules);
                 Node node;
                 Rule currentRule;
 
@@ -194,7 +194,7 @@ namespace Interpreter_lib.Parser
                 _hasFullyMatched = false;
 
             if (_hasMatchedW && !hasMatchedOnce && _lastToMatch)
-                throw new ParsingException(this, $"{(_currentRulesToMatch.Count > 0 ? "Rule" : "Token")} has matched less than once.");
+                throw new ParsingException(this, $"{(_expectedRules.Count > 0 ? "Rule" : "Token")} has matched less than once.");
 
             if (hasMatchedOnce && _isWSide)
                 _hasMatchedW = true;
@@ -214,12 +214,12 @@ namespace Interpreter_lib.Parser
             bool hasMatchedOnce = false;
             bool isMatchingAtLeastOnce;
 
-            if (_currentTokensToMatch.Count > 0)
+            if (_expectedTokens.Count > 0)
             {
                 do
                 {
                     isMatchingAtLeastOnce = false;
-                    foreach (EToken token in _currentTokensToMatch)
+                    foreach (EToken token in _expectedTokens)
                     {
                         if (_tokens[_currentTokenIndex].Type == token)
                         {
@@ -232,9 +232,9 @@ namespace Interpreter_lib.Parser
                 }
                 while (isMatchingAtLeastOnce);
             }
-            else if (_currentRulesToMatch.Count > 0)
+            else if (_expectedRules.Count > 0)
             {
-                List<Rule> currentRules = GetRules(_currentRulesToMatch);
+                List<Rule> currentRules = GetRules(_expectedRules);
                 Node node;
                 Rule currentRule;
 
@@ -264,7 +264,7 @@ namespace Interpreter_lib.Parser
                 _hasFullyMatched = false;
 
             if (_hasMatchedW && !hasMatchedOnce && _lastToMatch)
-                throw new ParsingException(this, $"{(_currentRulesToMatch.Count > 0 ? "Rule" : "Token")} has matched less than once.");
+                throw new ParsingException(this, $"{(_expectedRules.Count > 0 ? "Rule" : "Token")} has matched less than once.");
 
             if (hasMatchedOnce && _isWSide)
                 _hasMatchedW = true;
@@ -281,9 +281,9 @@ namespace Interpreter_lib.Parser
             if (_isTSide && !_hasMatchedW)
                 return this;
 
-            if (_currentTokensToMatch.Count > 0)
+            if (_expectedTokens.Count > 0)
             {
-                foreach (EToken token in _currentTokensToMatch)
+                foreach (EToken token in _expectedTokens)
                 {
                     if (_tokens[_currentTokenIndex].Type == token)
                     {
@@ -293,9 +293,9 @@ namespace Interpreter_lib.Parser
                     }
                 }
             }
-            else if (_currentRulesToMatch.Count > 0)
+            else if (_expectedRules.Count > 0)
             {
-                List<Rule> currentRules = GetRules(_currentRulesToMatch);
+                List<Rule> currentRules = GetRules(_expectedRules);
                 Node node;
                 foreach (Rule currentRule in currentRules)
                 {
@@ -327,12 +327,12 @@ namespace Interpreter_lib.Parser
 
             bool isMatchingAtLeastOnce;
 
-            if (_currentTokensToMatch.Count > 0)
+            if (_expectedTokens.Count > 0)
             {
                 do
                 {
                     isMatchingAtLeastOnce = false;
-                    foreach (EToken token in _currentTokensToMatch)
+                    foreach (EToken token in _expectedTokens)
                     {
                         if (_tokens[_currentTokenIndex].Type == token)
                         {
@@ -343,9 +343,9 @@ namespace Interpreter_lib.Parser
                     }
                 } while (isMatchingAtLeastOnce);
             }
-            else if (_currentRulesToMatch.Count > 0)
+            else if (_expectedRules.Count > 0)
             {
-                List<Rule> currentRules = GetRules(_currentRulesToMatch);
+                List<Rule> currentRules = GetRules(_expectedRules);
                 Node node;
                 do
                 {

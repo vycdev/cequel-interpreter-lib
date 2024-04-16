@@ -11,6 +11,7 @@ namespace Interpreter_lib.Parser
         ROOT, 
 
         STATEMENT, SUBSEQUENT_STATEMENT,
+        LINE_ENDING,
         
         SIMPLE_CONDITIONAL,
         PRINT, SUBSEQUENT_PRINT,
