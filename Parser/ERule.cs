@@ -12,9 +12,11 @@ namespace Interpreter_lib.Parser
 
         STATEMENT, 
         
+        WHILE_LOOP, DO_WHILE_LOOP, REPEAT_UNTIL_LOOP,
         FOR_LOOP, FOR_LOOP_STEP,
         IF_STATEMENT, ELSE_STATEMENT,
         PRINT, SUBSEQUENT_PRINT,
+        READ, SUBSEQUENT_READ,
 
         ASSIGNMENT,
 

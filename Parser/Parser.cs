@@ -21,24 +21,63 @@ namespace Interpreter_lib.Parser
 
             // ROOT 
             Rule.AddRule(new Rule(_rootRule, o => o
-                .WithR(ERule.STATEMENT).Hoist().AtLeastOnce()));
+                .WithR(ERule.STATEMENT).Hoist().AtLeastOnce()
+                .ThenT(EToken.END_OF_FILE).Exclude().Once()));
 
             #region STATEMENTS
 
             // STATEMENT
             Rule.AddRule(new Rule(ERule.STATEMENT, o => o
                 .WithR(
-                    ERule.EXPRESSION, // TODO: Remove rule from being an individual statement.
-                    ERule.IF_STATEMENT,
                     ERule.ASSIGNMENT,
                     ERule.PRINT,
-                    ERule.FOR_LOOP
+                    ERule.READ,
+                    ERule.IF_STATEMENT,
+                    ERule.FOR_LOOP,
+                    ERule.WHILE_LOOP,
+                    ERule.DO_WHILE_LOOP,
+                    ERule.REPEAT_UNTIL_LOOP
                 ).NeverHoist().Once()
                 .ThenT(EToken.END_OF_LINE).Exclude().Once()));
 
             #endregion
 
             #region INSTRUCTIONS
+
+            // REPEAT_UNTIL_LOOP
+            Rule.AddRule(new Rule(ERule.REPEAT_UNTIL_LOOP, o => o
+                .WithT(EToken.REPEAT).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenT(EToken.INDENT).Exclude().Once()
+                .ThenR(ERule.STATEMENT).AtLeastOnce()
+                .ThenT(EToken.DEDENT).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenT(EToken.UNTIL).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
+            ));
+
+            // DO_WHILE_LOOP
+            Rule.AddRule(new Rule(ERule.DO_WHILE_LOOP, o => o
+                .WithT(EToken.DO).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenT(EToken.INDENT).Exclude().Once()
+                .ThenR(ERule.STATEMENT).AtLeastOnce()
+                .ThenT(EToken.DEDENT).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenT(EToken.WHILE).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
+            ));
+
+            // WHILE_LOOP
+            Rule.AddRule(new Rule(ERule.WHILE_LOOP, o => o
+                .WithT(EToken.WHILE).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
+                .ThenT(EToken.DO).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenT(EToken.INDENT).Exclude().Once()
+                .ThenR(ERule.STATEMENT).AtLeastOnce()
+                .ThenT(EToken.DEDENT).Exclude().Once()
+            ));
 
             // FOR_LOOP
             Rule.AddRule(new Rule(ERule.FOR_LOOP, o => o
@@ -105,6 +144,17 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.SUBSEQUENT_PRINT, o => o
                 .WithT(EToken.COMMA).Exclude().Once()
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()));
+
+            // READ 
+            Rule.AddRule(new Rule(ERule.READ, o => o
+                .WithT(EToken.READ).Exclude().Once()
+                .ThenT(EToken.IDENTIFIER).Once()
+                .ThenR(ERule.SUBSEQUENT_READ).Hoist().ZeroOrMore()));
+
+            Rule.AddRule(new Rule(ERule.SUBSEQUENT_READ, o => o
+                .WithT(EToken.COMMA).Exclude().Once()
+                .ThenT(EToken.IDENTIFIER).Once()));
+
 
             #endregion
 
