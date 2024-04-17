@@ -115,6 +115,10 @@ namespace Interpreter_lib.Tokenizer
                     newTokens.RemoveAt(newTokens.Count - 1);
                     newTokens.Add(new Token(EToken.END_OF_LINE, "\\n"));
                     newTokens.Add(new Token(EToken.END_OF_FILE, "\\0"));
+                } 
+                else if (newTokens.Last().Type == EToken.END_OF_LINE)
+                {
+                    newTokens.Add(new Token(EToken.END_OF_FILE, "\\0"));
                 }
             }
 
