@@ -276,23 +276,20 @@ namespace Interpreter_lib.Parser
 
         public void Parse()
         {
-            List<Rule> rules = Rule.GetRules(_rootRule);
+            Rule rule = Rule.GetRules(_rootRule)[0];
             Node node;
 
-            foreach (Rule rule in rules)
-            {
-                node = rule.Evaluate(_tokens, _currentTokenIndex);
+            node = rule.Evaluate(_tokens, _currentTokenIndex);
 
-                if (_AST.IsEmpty && !node.IsEmpty)
-                {
-                    _AST = node;
-                    _currentTokenIndex += rule._currentTokenIndex;
-                }
-                else if (!node.IsEmpty)
-                {
-                    _AST.Add(node);
-                    _currentTokenIndex += rule._currentTokenIndex;
-                }
+            if (_AST.IsEmpty && !node.IsEmpty)
+            {
+                _AST = node;
+                _currentTokenIndex += rule._currentTokenIndex;
+            }
+            else if (!node.IsEmpty)
+            {
+                _AST.Add(node);
+                _currentTokenIndex += rule._currentTokenIndex;
             }
         }
 
