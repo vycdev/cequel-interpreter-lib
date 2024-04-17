@@ -12,7 +12,7 @@ namespace Interpreter_lib.Parser
 
         STATEMENT, 
         
-        IF_STATEMENT, IF_THEN_STATEMENT,
+        IF_STATEMENT, ELSE_STATEMENT,
         PRINT, SUBSEQUENT_PRINT,
 
         ASSIGNMENT,

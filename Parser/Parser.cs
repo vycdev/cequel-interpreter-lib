@@ -40,6 +40,7 @@ namespace Interpreter_lib.Parser
             #region INSTRUCTIONS
 
             // IF_STATEMENT
+
             Rule.AddRule(new Rule(ERule.IF_STATEMENT, o => o
                 .WithT(EToken.IF).Exclude().Once()
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()
@@ -47,7 +48,28 @@ namespace Interpreter_lib.Parser
                 .ThenT(EToken.END_OF_LINE).Exclude().Once()
                 .ThenT(EToken.INDENT).Exclude().Once()
                 .ThenR(ERule.STATEMENT).AtLeastOnce()
-                .ThenT(EToken.DEDENT).Exclude().Once()));
+                .ThenT(EToken.DEDENT).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenR(ERule.ELSE_STATEMENT).NeverHoist().Once()
+            ));
+
+            Rule.AddRule(new Rule(ERule.IF_STATEMENT, o => o
+                .WithT(EToken.IF).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
+                .ThenT(EToken.THEN).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenT(EToken.INDENT).Exclude().Once()
+                .ThenR(ERule.STATEMENT).AtLeastOnce()
+                .ThenT(EToken.DEDENT).Exclude().Once()
+            ));
+
+            Rule.AddRule(new Rule(ERule.ELSE_STATEMENT, o => o
+                .WithT(EToken.ELSE).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenT(EToken.INDENT).Exclude().Once()
+                .ThenR(ERule.STATEMENT).AtLeastOnce()
+                .ThenT(EToken.DEDENT).Exclude().Once()
+            ));
 
             // ASSIGNMENT
             Rule.AddRule(new Rule(ERule.ASSIGNMENT, o => o
@@ -64,7 +86,7 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.SUBSEQUENT_PRINT, o => o
                 .WithT(EToken.COMMA).Exclude().Once()
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()));
-            
+
             #endregion
 
             #region EXPRESSIONS
@@ -96,7 +118,7 @@ namespace Interpreter_lib.Parser
 
             // LESS_THAN, SUBSEQUENT_LESS_THAN,
             Rule.AddLTRBinaryOperatorRule(ERule.LESS_THAN, ERule.SUBSEQUENT_LESS_THAN, ERule.LESS_THAN_EQUAL, EToken.LESS_THAN);
-            
+
             // LESS_THAN_EQUAL, SUBSEQUENT_LESS_THAN_EQUAL,
             Rule.AddLTRBinaryOperatorRule(ERule.LESS_THAN_EQUAL, ERule.SUBSEQUENT_LESS_THAN_EQUAL, ERule.GREATER_THAN, EToken.LESS_THAN_EQUAL);
 
@@ -105,7 +127,7 @@ namespace Interpreter_lib.Parser
 
             // GREATER_THAN_EQUAL, SUBSEQUENT_GREATER_THAN_EQUAL,
             Rule.AddLTRBinaryOperatorRule(ERule.GREATER_THAN_EQUAL, ERule.SUBSEQUENT_GREATER_THAN_EQUAL, ERule.BITWISE_LEFT_SHIFT, EToken.GREATER_THAN_EQUAL);
-            
+
             // BITWISE_LEFT_SHIFT, SUBSEQUENT_BITWISE_LEFT_SHIFT,
             Rule.AddLTRBinaryOperatorRule(ERule.BITWISE_LEFT_SHIFT, ERule.SUBSEQUENT_BITWISE_LEFT_SHIFT, ERule.BITWISE_RIGHT_SHIFT, EToken.BITWISE_LEFT_SHIFT);
 
@@ -139,12 +161,12 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.UNARY_PLUS, o => o
                 .WithT(EToken.PLUS).Exclude().Once()
                 .ThenR(ERule.UNARY).Once()));
-            
+
             // UNARY_NOT
             Rule.AddRule(new Rule(ERule.UNARY_NOT, o => o
                 .WithT(EToken.NOT).Exclude().Once()
                 .ThenR(ERule.UNARY).Once()));
-            
+
             // UNARY_BITWISE_NOT
             Rule.AddRule(new Rule(ERule.UNARY_BITWISE_NOT, o => o
                 .WithT(EToken.BITWISE_NOT).Exclude().Once()
@@ -161,7 +183,7 @@ namespace Interpreter_lib.Parser
                 .WithT(EToken.LEFT_SQUARE_BRACKET).Exclude().Once()
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()
                 .ThenT(EToken.RIGHT_SQUARE_BRACKET).Exclude().Once()));
-            
+
             // Grouping
             Rule.AddRule(new Rule(ERule.GROUP, o => o
                 .WithT(EToken.LEFT_PARENTHESIS).Exclude().Once()
@@ -176,7 +198,7 @@ namespace Interpreter_lib.Parser
             Rule.AddRule(new Rule(ERule.PRIMARY, o => o
                 .WithT(EToken.IDENTIFIER).Once()));
             Rule.AddRule(new Rule(ERule.PRIMARY, o => o
-                .WithR(ERule.GROUP).Hoist().Once()));            
+                .WithR(ERule.GROUP).Hoist().Once()));
             Rule.AddRule(new Rule(ERule.PRIMARY, o => o
                 .WithR(ERule.FLOOR).NeverHoist().Once()));
 
@@ -195,11 +217,11 @@ namespace Interpreter_lib.Parser
                 else
                     node = rule.Evaluate(_tokens);
 
-                if(_AST.IsEmpty && !node.IsEmpty)
+                if (_AST.IsEmpty && !node.IsEmpty)
                 {
                     _AST = node;
                     _currentTokenIndex += rule._currentTokenIndex;
-                } 
+                }
                 else if (!node.IsEmpty)
                 {
                     _AST.Add(node);
