@@ -12,6 +12,7 @@ namespace Interpreter_lib.Parser
 
         STATEMENT, 
         
+        FOR_LOOP, FOR_LOOP_STEP,
         IF_STATEMENT, ELSE_STATEMENT,
         PRINT, SUBSEQUENT_PRINT,
 

@@ -31,7 +31,8 @@ namespace Interpreter_lib.Parser
                     ERule.EXPRESSION, // TODO: Remove rule from being an individual statement.
                     ERule.IF_STATEMENT,
                     ERule.ASSIGNMENT,
-                    ERule.PRINT
+                    ERule.PRINT,
+                    ERule.FOR_LOOP
                 ).NeverHoist().Once()
                 .ThenT(EToken.END_OF_LINE).Exclude().Once()));
 
@@ -39,8 +40,26 @@ namespace Interpreter_lib.Parser
 
             #region INSTRUCTIONS
 
-            // IF_STATEMENT
+            // FOR_LOOP
+            Rule.AddRule(new Rule(ERule.FOR_LOOP, o => o
+                .WithT(EToken.FOR).Exclude().Once()
+                .ThenR(ERule.ASSIGNMENT).NeverHoist().Once()
+                .ThenT(EToken.COMMA).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
+                .ThenR(ERule.FOR_LOOP_STEP).NeverHoist().AtMostOnce()
+                .ThenT(EToken.DO).Exclude().Once()
+                .ThenT(EToken.END_OF_LINE).Exclude().Once()
+                .ThenT(EToken.INDENT).Exclude().Once()
+                .ThenR(ERule.STATEMENT).AtLeastOnce()
+                .ThenT(EToken.DEDENT).Exclude().Once()
+            ));
 
+            Rule.AddRule(new Rule(ERule.FOR_LOOP_STEP, o => o
+                .WithT(EToken.COMMA).Exclude().Once()
+                .ThenR(ERule.EXPRESSION).NeverHoist().Once()
+            ));
+
+            // IF_STATEMENT
             Rule.AddRule(new Rule(ERule.IF_STATEMENT, o => o
                 .WithT(EToken.IF).Exclude().Once()
                 .ThenR(ERule.EXPRESSION).NeverHoist().Once()
