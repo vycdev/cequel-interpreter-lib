@@ -87,7 +87,7 @@ namespace Interpreter_lib.Tokenizer
             // Add dedent tokens at the end of the file
             if (indentLevel > 0)
             {
-                if(newTokens.Last().Type == EToken.END_OF_LINE)
+                if(newTokens.Last().Type == EToken.END_OF_FILE)
                 {
                     newTokens.RemoveAt(newTokens.Count - 1);
                     newTokens.Add(new Token(EToken.END_OF_LINE, "\\n"));
