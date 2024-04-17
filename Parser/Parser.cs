@@ -22,7 +22,7 @@ namespace Interpreter_lib.Parser
             // ROOT 
             Rule.AddRule(new Rule(_rootRule, o => o
                 .WithR(ERule.STATEMENT).Hoist().AtLeastOnce()
-                .ThenT(EToken.END_OF_FILE).Exclude().Once()));
+                .ThenT(EToken.END_OF_FILE).Once()));
 
             #region STATEMENTS
 
@@ -281,10 +281,7 @@ namespace Interpreter_lib.Parser
 
             foreach (Rule rule in rules)
             {
-                if (_currentTokenIndex > 0)
-                    node = rule.Evaluate(_tokens.Skip(_currentTokenIndex).ToList());
-                else
-                    node = rule.Evaluate(_tokens);
+                node = rule.Evaluate(_tokens, _currentTokenIndex);
 
                 if (_AST.IsEmpty && !node.IsEmpty)
                 {
