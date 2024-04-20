@@ -392,9 +392,18 @@ namespace Interpreter_lib.Parser
             return this;
         }
 
+        // This can be applied to rule elements (such as SubsequentSum) and will cause the element to never be hoisted
         IRuleRuleConfiguration IRuleRuleConfiguration.NeverHoist()
         {
             _isHoistImmune = true;
+
+            return this;
+        }
+
+        // This can be applied to the rule as a whole. It will set the last to match property to true.
+        public Rule LastToMatch()
+        {
+            _lastToMatch = true;
 
             return this;
         }

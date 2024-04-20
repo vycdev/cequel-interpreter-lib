@@ -276,7 +276,7 @@ namespace Interpreter_lib.Parser
 
         public void Parse()
         {
-            Rule rule = Rule.GetRules(_rootRule)[0];
+            Rule rule = Rule.GetRules(_rootRule)[0].LastToMatch();
             Node node;
 
             node = rule.Evaluate(_tokens, _currentTokenIndex);
