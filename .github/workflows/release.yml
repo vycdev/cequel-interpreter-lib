@@ -5,7 +5,8 @@ name: .NET Release
 
 on:
   push:
-    branches: [ "main" ]
+    tags:
+      - v*
 
 jobs:
   build:
