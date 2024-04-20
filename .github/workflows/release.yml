@@ -1,13 +1,11 @@
 ﻿# This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET
+name: .NET Release
 
 on:
   push:
     branches: [ "main" ]
-    tags:
-      - "v*"
 
 jobs:
   build:
@@ -15,15 +13,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+
     - name: Restore dependencies
       run: dotnet restore Interpreter_lib.csproj
+
     - name: Build
       run: dotnet build --no-restore Interpreter_lib.csproj -c Release
+
     - name: Create release
       id: create_release
       uses: actions/create-release@v1
@@ -34,6 +37,7 @@ jobs:
         release_name: Release ${{ github.sha }}
         draft: false
         prerelease: false
+
     - name: Upload Release Asset
       id: upload-release-asset
       uses: actions/upload-release-asset@v1
