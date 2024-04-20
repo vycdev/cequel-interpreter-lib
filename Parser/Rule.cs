@@ -1,4 +1,5 @@
 ﻿using Interpreter_lib.Tokenizer;
+using Interpreter_lib.Utils;
 using System.Data;
 using System.Numerics;
 using System.Timers;
@@ -145,7 +146,7 @@ namespace Interpreter_lib.Parser
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.Once()
         {
             if (_tokens.Count == 0)
-                throw new ParsingException(this, "Missing tokens.");
+                throw new InterpretingException(this, "Missing tokens.");
 
             if (_isTSide && !_hasMatchedW)
                 return this;
@@ -194,7 +195,7 @@ namespace Interpreter_lib.Parser
                 _hasFullyMatched = false;
 
             if (_hasMatchedW && !hasMatchedOnce && _lastToMatch)
-                throw new ParsingException(this, $"{(_expectedRules.Count > 0 ? "Rule" : "Token")} has matched less than once.");
+                throw new InterpretingException(this, $"{(_expectedRules.Count > 0 ? "Rule" : "Token")} has matched less than once.");
 
             if (hasMatchedOnce && _isWSide)
                 _hasMatchedW = true;
@@ -206,7 +207,7 @@ namespace Interpreter_lib.Parser
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtLeastOnce()
         {
             if (_tokens.Count == 0)
-                throw new ParsingException(this, "Missing tokens.");
+                throw new InterpretingException(this, "Missing tokens.");
 
             if (_isTSide && !_hasMatchedW)
                 return this;
@@ -264,7 +265,7 @@ namespace Interpreter_lib.Parser
                 _hasFullyMatched = false;
 
             if (_hasMatchedW && !hasMatchedOnce && _lastToMatch)
-                throw new ParsingException(this, $"{(_expectedRules.Count > 0 ? "Rule" : "Token")} has matched less than once.");
+                throw new InterpretingException(this, $"{(_expectedRules.Count > 0 ? "Rule" : "Token")} has matched less than once.");
 
             if (hasMatchedOnce && _isWSide)
                 _hasMatchedW = true;
@@ -276,7 +277,7 @@ namespace Interpreter_lib.Parser
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.AtMostOnce()
         {
             if (_tokens.Count == 0)
-                throw new ParsingException(this, "Missing tokens.");
+                throw new InterpretingException(this, "Missing tokens.");
 
             if (_isTSide && !_hasMatchedW)
                 return this;
@@ -320,7 +321,7 @@ namespace Interpreter_lib.Parser
         IRuleContinuationConfiguration IRuleFrequencyConfiguration.ZeroOrMore()
         {
             if (_tokens.Count == 0)
-                throw new ParsingException(this, "Missing tokens.");
+                throw new InterpretingException(this, "Missing tokens.");
 
             if (_isTSide && !_hasMatchedW)
                 return this;
