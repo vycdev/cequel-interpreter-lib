@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Utils
 {
-    public class ParsingException : Exception
+    public class InterpretingException : Exception
     {
         public Rule? Rule { get; }
 
-        public ParsingException(Rule? rule, string? message) : base(message)
+        public InterpretingException(Rule? rule, string? message) : base(message)
         {
             Rule = rule;
         }
