@@ -1,4 +1,5 @@
-﻿using Interpreter_lib.Tokenizer;
+﻿using Interpreter_lib.Parser;
+using Interpreter_lib.Tokenizer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Interpreter_lib.Parser
+namespace Interpreter_lib.Utils
 {
     public class ParsingException : Exception
     {
