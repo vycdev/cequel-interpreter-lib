@@ -25,16 +25,18 @@ namespace Interpreter_lib.Tokenizer
     {
         public EToken Type { get; private set; }
         public string Value { get; private set; }
+        public int Line { get; private set; }
 
-        public Token(EToken type, string value)
+        public Token(EToken type, string value, int line)
         {
             Type = type;
             Value = value;
+            Line = line;
         }
 
         public object Clone()
         {
-            return new Token(Type, Value);
+            return new Token(Type, Value, Line);
         }
 
         public string Print()
