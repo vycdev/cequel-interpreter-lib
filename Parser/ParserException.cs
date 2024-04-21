@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Parser
 {
-    public class InterpretingException : Exception
+    public class ParserException : Exception
     {
         public Rule Rule { get; }
 
-        public InterpretingException(Rule rule, string? message) : base(BetterMessage(rule, message))
+        public ParserException(Rule rule, string? message) : base(BetterMessage(rule, message))
         {
             Rule = rule;
         }
