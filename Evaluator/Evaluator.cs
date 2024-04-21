@@ -186,7 +186,7 @@ namespace Interpreter_lib.Evaluator
                     break;
             }
 
-            return new Atom(AtomType.NUMBER, 0);
+            throw new EvaluatorException(node, "Invalid operator.");
         }
 
         // EXPRESSION,
