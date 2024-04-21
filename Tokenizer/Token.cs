@@ -41,7 +41,7 @@ namespace Interpreter_lib.Tokenizer
 
         public string Print()
         {
-            return $"{Type}: {Value}";
+            return $"{Type}: {Value} | Line: {Line}";
         }
     }
 }

@@ -9,6 +9,8 @@ namespace Interpreter_lib.Parser
 {
     public class Node : ISyntaxNode
     {
+        public int Line { get; set; }
+        
         public ERule _rule { get; private set; }
         private List<ISyntaxNode> _syntaxNodes; 
 
@@ -25,6 +27,7 @@ namespace Interpreter_lib.Parser
         {
             _syntaxNodes = new();
             _rule = rule;
+            Line = 0;
         } 
 
         public List<ISyntaxNode> GetSyntaxNodes()
@@ -45,6 +48,7 @@ namespace Interpreter_lib.Parser
         public object Clone()
         {
             Node node = new(_rule);
+            node.Line = Line;
             node.Add(_syntaxNodes);
 
             return node;
@@ -52,7 +56,7 @@ namespace Interpreter_lib.Parser
 
         public string Print()
         {
-            return $"{_rule}";
+            return $"{_rule} | Line: {Line}";
         }
     }
 }

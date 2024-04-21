@@ -180,6 +180,7 @@ namespace Interpreter_lib.Parser
                         currentRule._lastToMatch = true;
 
                     node = currentRule.Evaluate(_tokens, _currentTokenIndex);
+                    node.Line = _tokens[_currentTokenIndex].Line;
 
                     if (currentRule._hasFullyMatched)
                     {
@@ -249,6 +250,7 @@ namespace Interpreter_lib.Parser
                             currentRule._lastToMatch = true;
 
                         node = currentRule.Evaluate(_tokens, _currentTokenIndex);
+                        node.Line = _tokens[_currentTokenIndex].Line;
 
                         if (currentRule._hasFullyMatched)
                         {
@@ -301,6 +303,7 @@ namespace Interpreter_lib.Parser
                 foreach (Rule currentRule in currentRules)
                 {
                     node = currentRule.Evaluate(_tokens, _currentTokenIndex);
+                    node.Line = _tokens[_currentTokenIndex].Line;
 
                     if (currentRule._hasFullyMatched)
                     {
@@ -354,6 +357,7 @@ namespace Interpreter_lib.Parser
                     foreach (Rule currentRule in currentRules)
                     {
                         node = currentRule.Evaluate(_tokens, _currentTokenIndex);
+                        node.Line = _tokens[_currentTokenIndex].Line;
 
                         if (currentRule._hasFullyMatched)
                         {
