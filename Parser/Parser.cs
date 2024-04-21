@@ -22,7 +22,7 @@ namespace Interpreter_lib.Parser
             // ROOT 
             Rule.AddRule(new Rule(_rootRule, o => o
                 .WithR(ERule.STATEMENT).Hoist().AtLeastOnce()
-                .ThenT(EToken.END_OF_FILE).Once()));
+                .ThenT(EToken.END_OF_FILE).Exclude().Once()));
 
             #region STATEMENTS
 
