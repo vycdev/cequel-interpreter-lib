@@ -339,7 +339,7 @@ namespace Interpreter_lib.Evaluator
             if (n.GetType() == typeof(Token))
                 result = GetAtom(n);
             else
-                result = EvaluateExpression((Node)n);
+                result = EvaluateOperator((Node)n);
 
             if (result.Type != AtomType.NUMBER)
                 throw new EvaluatorException(n, $"Invalid variable type, expected NUMBER but got {result.Type}.");
