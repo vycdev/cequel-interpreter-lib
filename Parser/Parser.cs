@@ -284,7 +284,7 @@ namespace Interpreter_lib.Parser
             _AST = node;
 
             if(_AST.IsEmpty)
-                throw new InterpretingException(rule, "Rule has matched less than once.");
+                throw new ParserException(rule, "Rule has matched less than once.");
         }
 
         public Node GetTree()
