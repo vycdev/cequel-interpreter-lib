@@ -9,7 +9,7 @@ namespace Interpreter_lib.Parser
 {
     public class Node : ISyntaxNode
     {
-        private ERule _rule;
+        public ERule _rule { get; private set; }
         private List<ISyntaxNode> _syntaxNodes; 
 
         public bool IsEmpty => _syntaxNodes.Count == 0;
@@ -26,11 +26,6 @@ namespace Interpreter_lib.Parser
             _syntaxNodes = new();
             _rule = rule;
         } 
-
-        public ERule GetRule()
-        {
-            return _rule;
-        }
 
         public List<ISyntaxNode> GetSyntaxNodes()
         {

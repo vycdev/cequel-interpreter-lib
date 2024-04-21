@@ -1,4 +1,5 @@
 ﻿using Interpreter_lib.Tokenizer;
+using Interpreter_lib.Utils;
 using System.Reflection;
 
 namespace Interpreter_lib.Parser
@@ -280,17 +281,10 @@ namespace Interpreter_lib.Parser
             Node node;
 
             node = rule.Evaluate(_tokens, _currentTokenIndex);
+            _AST = node;
 
-            if (_AST.IsEmpty && !node.IsEmpty)
-            {
-                _AST = node;
-                _currentTokenIndex += rule._currentTokenIndex;
-            }
-            else if (!node.IsEmpty)
-            {
-                _AST.Add(node);
-                _currentTokenIndex += rule._currentTokenIndex;
-            }
+            if(_AST.IsEmpty)
+                throw new InterpretingException(rule, "Rule has matched less than once.");
         }
 
         public Node GetTree()

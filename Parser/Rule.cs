@@ -421,7 +421,7 @@ namespace Interpreter_lib.Parser
         private void AddToTree(Node node)
         {
             if ((_isHoisted
-                || node.GetRule() == _rule
+                || node._rule == _rule
                 || (node.TokenCount == 1 && node.NodeCount == 1)
                 || (node.TopNodeCount == 1 && node.TopTokenCount == 0))
                 && !_isHoistImmune)
