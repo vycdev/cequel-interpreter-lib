@@ -64,6 +64,8 @@ namespace Interpreter_lib.Evaluator
                 default:
                     break;
             }
+
+            throw new EvaluatorException(node, "Invalid node type.");
         }
 
         // ROOT 
@@ -74,7 +76,7 @@ namespace Interpreter_lib.Evaluator
                 if (n.GetType() == typeof(Node))
                     Evaluate((Node)n);
                 else
-                    throw new Exception("Invalid node type");
+                    throw new EvaluatorException(node, "Invalid node type, received token instead.");
             }
         }
 
@@ -133,53 +135,53 @@ namespace Interpreter_lib.Evaluator
             switch (node._rule)
             {
                 case ERule.LOGICAL_OR:
-                    return EvaluateLogicalOr(node);
+                    return EvaluateBinaryOperator<int>(node, (x, y) => (x == 1 || y == 1) ? 1 : 0);
                 case ERule.LOGICAL_AND:
-                    return EvaluateLogicalAnd(node);
+                    return EvaluateBinaryOperator<int>(node, (x, y) => (x == 1 && y == 1) ? 1 : 0);
                 case ERule.BITWISE_OR:
-                    return EvaluateBitwiseOr(node);
+                    return EvaluateBinaryOperator<int>(node, (x, y) => x | y);
                 case ERule.BITWISE_XOR:
-                    return EvaluateBitwiseXor(node);
+                    return EvaluateBinaryOperator<int>(node, (x, y) => x ^ y);
                 case ERule.BITWISE_AND:
-                    return EvaluateBitwiseAnd(node);
+                    return EvaluateBinaryOperator<int>(node, (x, y) => x & y);
                 case ERule.NOT_EQUAL:
-                    return EvaluateNotEqual(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => (x != y) ? 1 : 0);
                 case ERule.EQUAL:
-                    return EvaluateEqual(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => (x == y) ? 1 : 0);
                 case ERule.GREATER_THAN_EQUAL:
-                    return EvaluateGreaterThanEqual(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => (x >= y) ? 1 : 0);
                 case ERule.GREATER_THAN:
-                    return EvaluateGreaterThan(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => (x > y) ? 1 : 0);
                 case ERule.LESS_THAN_EQUAL:
-                    return EvaluateLessThanEqual(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => (x <= y) ? 1 : 0);
                 case ERule.LESS_THAN:
-                    return EvaluateLessThan(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => (x < y) ? 1 : 0);
                 case ERule.BITWISE_RIGHT_SHIFT:
-                    return EvaluateBitwiseRightShift(node);
+                    return EvaluateBinaryOperator<int>(node, (x, y) => x >> y);
                 case ERule.BITWISE_LEFT_SHIFT:
-                    return EvaluateBitwiseLeftShift(node);
+                    return EvaluateBinaryOperator<int>(node, (x, y) => x << y);
                 case ERule.SUM:
                     return EvaluateSum(node);
                 case ERule.SUBTRACT:
-                    return EvaluateSubtract(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => x - y);
                 case ERule.MULTIPLY:
-                    return EvaluateMultiply(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => x * y);
                 case ERule.DIVIDE:
-                    return EvaluateDivide(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => x / y);
                 case ERule.MODULUS:
-                    return EvaluateModulus(node);
+                    return EvaluateBinaryOperator<float>(node, (x, y) => x % y);
                 case ERule.POWER:
                     return EvaluatePower(node);
                 case ERule.UNARY_MINUS:
-                    return EvaluateUnaryMinus(node);
+                    return EvaluateUnaryOperator<float>(node, x => -x);
                 case ERule.UNARY_PLUS:
-                    return EvaluateUnaryPlus(node);
+                    return EvaluateUnaryOperator<float>(node, x => +x);
                 case ERule.UNARY_NOT:
-                    return EvaluateUnaryNot(node);
+                    return EvaluateUnaryOperator<int>(node, x => x == 0 ? 1 : 0);
                 case ERule.UNARY_BITWISE_NOT:
-                    return EvaluateUnaryBitwiseNot(node);
+                    return EvaluateUnaryOperator<int>(node, x => ~x);
                 case ERule.FLOOR:
-                    return EvaluateFloor(node);
+                    return EvaluateUnaryOperator<float>(node, x => (int)Math.Floor(x));
                 case ERule.EXPRESSION:
                     return EvaluateExpression(node);
                 default:
@@ -192,225 +194,153 @@ namespace Interpreter_lib.Evaluator
         // EXPRESSION,
         Atom EvaluateExpression(Node node)
         {
-            return new Atom(AtomType.NUMBER, 0);
+            List<ISyntaxNode> nodes = node.GetSyntaxNodes();
+            if (nodes.Count != 1)
+                throw new EvaluatorException(node, $"Invalid number of arguments for operator {node._rule}.");
 
-        }
+            ISyntaxNode n = nodes[0];
 
-        // LOGICAL_OR, 
-        Atom EvaluateLogicalOr(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // LOGICAL_AND, 
-        Atom EvaluateLogicalAnd(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // BITWISE_OR,
-        Atom EvaluateBitwiseOr(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // BITWISE_XOR,
-        Atom EvaluateBitwiseXor(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // BITWISE_AND,
-        Atom EvaluateBitwiseAnd(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // NOT_EQUAL,
-        Atom EvaluateNotEqual(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // EQUAL,
-        Atom EvaluateEqual(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // GREATER_THAN_EQUAL,
-        Atom EvaluateGreaterThanEqual(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // GREATER_THAN,
-        Atom EvaluateGreaterThan(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // LESS_THAN_EQUAL,
-        Atom EvaluateLessThanEqual(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // LESS_THAN,
-        Atom EvaluateLessThan(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // BITWISE_RIGHT_SHIFT,
-        Atom EvaluateBitwiseRightShift(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // BITWISE_LEFT_SHIFT,
-        Atom EvaluateBitwiseLeftShift(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
+            if (n.GetType() == typeof(Token))
+                return GetAtom(n);
+            else
+                return EvaluateOperator((Node)n);
         }
 
         // SUM,
         Atom EvaluateSum(Node node)
         {
-            return new Atom(AtomType.NUMBER, 0);
+            List<ISyntaxNode> n = node.GetSyntaxNodes();
+            if (n.Count < 2)
+                throw new EvaluatorException(node, "Invalid number of arguments for operator POWER.");
 
-        }
+            Atom result;
+            Atom acc;
 
-        // SUBTRACT,
-        Atom EvaluateSubtract(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
+            // Get first element
+            if (n[0].GetType() == typeof(Token))
+                result = GetAtom(n[0]);
+            else
+                result = EvaluateOperator((Node)n[0]);
 
-        }
+            acc = result;
 
-        // MULTIPLY,
-        Atom EvaluateMultiply(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
+            // Iterate through the rest of the elements
+            for (int i = 1; i < n.Count; i++)
+            {
+                if (n[i].GetType() == typeof(Token))
+                    result = GetAtom(n[i]);
+                else
+                    result = EvaluateOperator((Node)n[i]);
 
-        }
+                if (result.Type == AtomType.NUMBER)
+                    if(acc.Type == AtomType.NUMBER)
+                        acc = new Atom(AtomType.NUMBER, (float)acc.Value + (float)result.Value);
+                    else 
+                        acc = new Atom(AtomType.STRING, (string)acc.Value + (float)result.Value);
+                else
+                    if(acc.Type == AtomType.NUMBER)
+                        acc = new Atom(AtomType.STRING, (float)acc.Value + (string)result.Value);
+                    else
+                        acc = new Atom(AtomType.STRING, (string)acc.Value + (string)result.Value);
+            }
 
-        // DIVIDE,
-        Atom EvaluateDivide(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // MODULUS,
-        Atom EvaluateModulus(Node node)
-        {
-            return new Atom(AtomType.NUMBER, 0);
-
+            return acc;
         }
 
         // POWER,
         Atom EvaluatePower(Node node)
         {
-            return new Atom(AtomType.NUMBER, 0);
-
-        }
-
-        // UNARY_MINUS,
-        Atom EvaluateUnaryMinus(Node node)
-        {
-            ISyntaxNode n = node.GetSyntaxNodes()[0];
+            List<ISyntaxNode> n = node.GetSyntaxNodes();
+            if(n.Count < 2)
+                throw new EvaluatorException(node, $"Invalid number of arguments for operator {node._rule}.");
 
             Atom result;
+            Atom acc; 
 
-            if (n.GetType() == typeof(Token))
-                result = GetAtom(n);
+            // Get last element
+            if (n[n.Count - 1].GetType() == typeof(Token))
+                result = GetAtom(n[n.Count - 1]);
             else
-                result = EvaluateOperator((Node)n);
+                result = EvaluateOperator((Node)n[n.Count - 1]);
 
             if (result.Type != AtomType.NUMBER)
-                throw new EvaluatorException(n, $"Invalid variable type, expected NUMBER but got {result.Type}.");
+                throw new EvaluatorException(n[n.Count - 1], $"Invalid variable type, expected NUMBER but got {result.Type}.");
 
-            return new Atom(AtomType.NUMBER, -(float)result.Value);
-        }
+            acc = result;
 
-        // UNARY_PLUS,
-        Atom EvaluateUnaryPlus(Node node)
-        {
-            ISyntaxNode n = node.GetSyntaxNodes()[0];
-
-            Atom result;
-
-            if (n.GetType() == typeof(Token))
-                result = GetAtom(n);
-            else
-                result = EvaluateOperator((Node)n);
-
-            if (result.Type != AtomType.NUMBER)
-                throw new EvaluatorException(n, $"Invalid variable type, expected NUMBER but got {result.Type}.");
-
-            return new Atom(AtomType.NUMBER, +(float)result.Value);
-        }
-
-        // UNARY_NOT,
-        Atom EvaluateUnaryNot(Node node)
-        {
-            ISyntaxNode n = node.GetSyntaxNodes()[0];
-
-            Atom result; 
-
-            if (n.GetType() == typeof(Token))
-                result = GetAtom(n);
-            else
-                result = EvaluateOperator((Node)n);
-           
-            if (result.Type != AtomType.NUMBER)
-                throw new EvaluatorException(n, $"Invalid variable type, expected NUMBER but got {result.Type}.");
-
-            return new Atom(AtomType.NUMBER, (int)result.Value == 0 ? 1 : 0);
-        }
-
-        // UNARY_BITWISE_NOT,
-        Atom EvaluateUnaryBitwiseNot(Node node)
-        {
-            ISyntaxNode n = node.GetSyntaxNodes()[0];
-
-            Atom result; 
-
-            if (n.GetType() == typeof(Token))
-                result = GetAtom(n);
-            else
-                result = EvaluateOperator((Node)n);
-           
-            if (result.Type != AtomType.NUMBER)
-                throw new EvaluatorException(n, $"Invalid variable type, expected NUMBER but got {result.Type}.");
-
-            return new Atom(AtomType.NUMBER, ~(int)result.Value);
-        }
-
-        // FLOOR,
-        Atom EvaluateFloor(Node node)
-        {
-            Atom result = EvaluateOperator((Node)node.GetSyntaxNodes()[0]);
-            if (result.Type != AtomType.NUMBER)
+            // Iterate through the rest of the elements
+            for (int i = n.Count - 2; i >= 0; i--)
             {
-                throw new EvaluatorException(node, "Invalid token type, expected number.");
+                if (n[i].GetType() == typeof(Token))
+                    result = GetAtom(n[i]);
+                else
+                    result = EvaluateOperator((Node)n[i]);
+
+                if (result.Type != AtomType.NUMBER)
+                    throw new EvaluatorException(n[i], $"Invalid variable type, expected NUMBER but got {result.Type}.");
+                
+                acc = new Atom(AtomType.NUMBER, Math.Pow((float)result.Value, (float)acc.Value));
             }
 
-            return new Atom(AtomType.NUMBER, Math.Floor((float)result.Value));
+            return acc;
+        }
+
+        private Atom EvaluateBinaryOperator<T>(Node node, Func<T, T, T> action)
+        {
+            List<ISyntaxNode> n = node.GetSyntaxNodes();
+            if (n.Count < 2)
+                throw new EvaluatorException(node, $"Invalid number of arguments for operator {node._rule}.");
+
+            Atom result;
+            Atom acc;
+
+            // Get first element
+            if (n[0].GetType() == typeof(Token))
+                result = GetAtom(n[0]);
+            else
+                result = EvaluateOperator((Node)n[0]);
+
+            if (result.Type != AtomType.NUMBER)
+                throw new EvaluatorException(n[0], $"Invalid variable type, expected NUMBER but got {result.Type}.");
+
+            acc = result;
+
+            // Iterate through the rest of the elements
+            for (int i = 1; i < n.Count; i++)
+            {
+                if (n[i].GetType() == typeof(Token))
+                    result = GetAtom(n[i]);
+                else
+                    result = EvaluateOperator((Node)n[i]);
+
+                if (result.Type != AtomType.NUMBER)
+                    throw new EvaluatorException(n[i], $"Invalid variable type, expected NUMBER but got {result.Type}.");
+
+                acc = new Atom(AtomType.NUMBER, action((T)acc.Value, (T)result.Value));
+            }
+
+            return acc;
+        }
+
+        private Atom EvaluateUnaryOperator<T>(Node node, Func<T, T> action)
+        {
+            List<ISyntaxNode> nodes = node.GetSyntaxNodes();
+            if(nodes.Count != 1)
+                throw new EvaluatorException(node, $"Invalid number of arguments for operator {node._rule}.");
+            
+            ISyntaxNode n = nodes[0];
+
+            Atom result;
+
+            if (n.GetType() == typeof(Token))
+                result = GetAtom(n);
+            else
+                result = EvaluateOperator((Node)n);
+
+            if (result.Type != AtomType.NUMBER)
+                throw new EvaluatorException(n, $"Invalid variable type, expected NUMBER but got {result.Type}.");
+
+            return new Atom(AtomType.NUMBER, action((T)result.Value));
         }
 
         #endregion
@@ -451,4 +381,4 @@ namespace Interpreter_lib.Evaluator
 
         #endregion
     }
-}
+} 
