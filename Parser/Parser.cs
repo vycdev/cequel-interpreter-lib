@@ -30,7 +30,6 @@ namespace Interpreter_lib.Parser
             // STATEMENT
             Rule.AddRule(new Rule(ERule.STATEMENT, o => o
                 .WithR(
-                    ERule.EXPRESSION, // TODO: remove this line
                     ERule.ASSIGNMENT,
                     ERule.PRINT,
                     ERule.READ,
