@@ -85,37 +85,202 @@ namespace Interpreter_lib.Evaluator
         // WHILE_LOOP,
         void EvaluateWhileLoop(Node node)
         {
+            // Get all nodes
+            List<ISyntaxNode> nodes = node.GetSyntaxNodes();
+            
+            // Get the first node
+            Node condition = (Node)nodes[0];
 
+            // Loop until the condition is false
+            while (EvaluateOperator(condition).Value.Equals(1))
+            {
+                foreach (var n in nodes.Skip(1))
+                {
+                    if (n.GetType() == typeof(Node))
+                        Evaluate((Node)n);
+                    else
+                        throw new EvaluatorException(node, "Invalid node type, received token instead.");
+                }
+            }
         }
 
         // DO_WHILE_LOOP,
         void EvaluateDoWhileLoop(Node node)
         {
+            // Get all nodes
+            List<ISyntaxNode> nodes = node.GetSyntaxNodes();
 
+            // Get last node
+            Node condition = (Node)nodes[nodes.Count - 1];
+
+            // Loop until the condition is false
+            do
+            {
+                foreach (var n in nodes.Take(nodes.Count - 1))
+                {
+                    if (n.GetType() == typeof(Node))
+                        Evaluate((Node)n);
+                    else
+                        throw new EvaluatorException(node, "Invalid node type, received token instead.");
+                }
+            } while (EvaluateOperator(condition).Value.Equals(1));
         }
 
         // REPEAT_UNTIL_LOOP,
         void EvaluateRepeatUntilLoop(Node node)
         {
+            // Get all nodes
+            List<ISyntaxNode> nodes = node.GetSyntaxNodes();
 
+            // Get last node
+            Node condition = (Node)nodes[nodes.Count - 1];
+
+            // Loop until condition is true
+            do
+            {
+                foreach (var n in nodes.Take(nodes.Count - 1))
+                {
+                    if (n.GetType() == typeof(Node))
+                        Evaluate((Node)n);
+                    else
+                        throw new EvaluatorException(node, "Invalid node type, received token instead.");
+                }
+            } while (!EvaluateOperator(condition).Value.Equals(1));
         }
 
         // FOR_LOOP,
         void EvaluateForLoop(Node node)
         {
+            // Get all nodes
+            List<ISyntaxNode> nodes = node.GetSyntaxNodes();
 
+            // Get first node as an assignment
+            Node assignment = (Node)nodes[0];
+
+            // Get second node as a condition
+            Node condition = (Node)nodes[1];
+
+            // Check if third node is a step
+            Node? step = null;
+            if (nodes.Count == 3 && ((Node)nodes[2])._rule == ERule.FOR_LOOP_STEP)
+                step = (Node)nodes[2];
+
+            // Evaluate the assignment
+            string variableKey = EvaluateAssignment(assignment);
+
+            // Loop until the condition is false
+            while (EvaluateOperator(condition).Value.Equals(1))
+            {
+                foreach (var n in nodes.Skip(step == null ? 2 : 3))
+                {
+                    if (n.GetType() == typeof(Node))
+                        Evaluate((Node)n);
+                    else
+                        throw new EvaluatorException(node, "Invalid node type, received token instead.");
+                }
+
+                // Evaluate the step
+                if (step != null)
+                {
+                    Atom result = EvaluateOperator(step);
+                    // Get the value of the variable
+                    if (_variables.TryGetValue(variableKey, out Atom? value))
+                    {
+                        if (value.Type == AtomType.NUMBER)
+                        {
+                            _variables[variableKey] = new Atom(AtomType.NUMBER, (float)value.Value + (float)result.Value);
+                        }
+                        else
+                        {
+                            throw new EvaluatorException(node, "Invalid variable type, expected NUMBER but got STRING.");
+                        }
+                    }
+                    else
+                    {
+                        throw new EvaluatorException(node, "Variable was used before declaration.");
+                    }
+                }
+                else
+                {
+                    // Get the value of the variable
+                    if (_variables.TryGetValue(variableKey, out Atom? value))
+                    {
+                        if (value.Type == AtomType.NUMBER)
+                        {
+                            _variables[variableKey] = new Atom(AtomType.NUMBER, (float)value.Value + 1);
+                        }
+                        else
+                        {
+                            throw new EvaluatorException(node, "Invalid variable type, expected NUMBER but got STRING.");
+                        }
+                    }
+                    else
+                    {
+                        throw new EvaluatorException(node, "Variable was used before declaration.");
+                    }
+                }
+            }
         }
 
         // IF_STATEMENT, ELSE_STATEMENT,
         void EvaluateIfStatement(Node node)
         {
+            // Get all nodes
+            List<ISyntaxNode> nodes = node.GetSyntaxNodes();
 
+            // Get the first node which is the condition
+            Node condition = (Node)nodes[0];
+
+            // Get the last node and check if it's and else statement
+            Node? elseStatement = null;
+            if (nodes.Count > 1 && ((Node)nodes[nodes.Count - 1])._rule == ERule.ELSE_STATEMENT)
+                elseStatement = (Node)nodes[nodes.Count - 1];
+
+            // Check if the condition is true
+            if (EvaluateOperator(condition).Value.Equals(1))
+            {
+                // Evaluate the if statement
+                foreach (var n in nodes.Skip(1).Take(elseStatement == null ? nodes.Count - 1 : nodes.Count - 2))
+                {
+                    if (n.GetType() == typeof(Node))
+                        Evaluate((Node)n);
+                    else
+                        throw new EvaluatorException(node, "Invalid node type, received token instead.");
+                }
+            }
+            else if (elseStatement != null)
+            {
+                // Evaluate the else statement
+                foreach (var n in elseStatement.GetSyntaxNodes())
+                {
+                    if (n.GetType() == typeof(Node))
+                        Evaluate((Node)n);
+                    else
+                        throw new EvaluatorException(node, "Invalid node type, received token instead.");
+                }
+            }
         }
 
         // PRINT,
         void EvaluatePrint(Node node)
         {
+            // Get the nodes
+            List<ISyntaxNode> nodes = node.GetSyntaxNodes();
 
+            // Evaluate each node and print the result
+            foreach (var n in nodes)
+            {
+                Atom result = EvaluateOperator((Node)n);
+
+                if (result.Type == AtomType.NUMBER)
+                {
+                    Console.WriteLine((float)result.Value);
+                }
+                else
+                {
+                    Console.WriteLine((string)result.Value);
+                }
+            }
         }
 
         // READ,
@@ -125,9 +290,24 @@ namespace Interpreter_lib.Evaluator
         }
 
         // ASSIGNMENT,
-        void EvaluateAssignment(Node node)
+        string EvaluateAssignment(Node node)
         {
+            // Get the nodes
+            List<ISyntaxNode> nodes = node.GetSyntaxNodes();
 
+            // Get the first node which is a token
+            Token variable = (Token)nodes[0];
+
+            // Get the second node which is an expression
+            Node expression = (Node)nodes[1];
+
+            // Evaluate the expression
+            Atom result = EvaluateOperator(expression);
+
+            // Add the variable to the dictionary
+            _variables[variable.Value] = result;
+        
+            return variable.Value;
         }
 
         Atom EvaluateOperator(Node node)
