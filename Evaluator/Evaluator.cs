@@ -30,7 +30,7 @@ namespace Interpreter_lib.Evaluator
     {
         private static Dictionary<string, Atom> _variables = new Dictionary<string, Atom>();
 
-        void Evaluate(Node node)
+        public void Evaluate(Node node)
         {
             switch (node._rule)
             {
@@ -62,10 +62,8 @@ namespace Interpreter_lib.Evaluator
                     EvaluateAssignment(node);
                     break;
                 default:
-                    break;
+                    throw new EvaluatorException(node, "Invalid node type.");
             }
-
-            throw new EvaluatorException(node, "Invalid node type.");
         }
 
         // ROOT 

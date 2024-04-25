@@ -22,7 +22,10 @@ namespace Interpreter_lib.Tokenizer
             _source = source;
             _position = 0;
             _currentLine = 1;
-            _currentChar = _source[_position];
+            if (_source.Length > 0)
+                _currentChar = _source[_position];
+            else
+                return;
             if (language != null)
                 _language = language;
 
