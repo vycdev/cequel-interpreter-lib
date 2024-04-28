@@ -156,20 +156,36 @@ namespace Interpreter_lib.Evaluator
             Node assignment = (Node)nodes[0];
 
             // Get second node as a condition
-            Node condition = (Node)nodes[1];
+            Node finalExpression = (Node)nodes[1];
 
             // Check if third node is a step
-            Node? step = null;
-            if (nodes.Count == 3 && ((Node)nodes[2])._rule == ERule.FOR_LOOP_STEP)
-                step = (Node)nodes[2];
+            Node? stepExpresssion = null;
+            if (nodes.Count >= 3 && ((Node)nodes[2])._rule == ERule.FOR_LOOP_STEP)
+                stepExpresssion = (Node)((Node)nodes[2]).GetSyntaxNodes()[0];
 
             // Evaluate the assignment
             string variableKey = EvaluateAssignment(assignment);
 
-            // Loop until the condition is false
-            while ((float)(EvaluateOperator(condition).Value) == 1)
+            // Get the value of the variable
+            if (!_variables.TryGetValue(variableKey, out Atom? value))
+                throw new EvaluatorException(node, "Variable was used before declaration.");
+
+            // Evaluate the step if it exists
+            Atom? firstStep = null; 
+            if (stepExpresssion != null)
             {
-                foreach (var n in nodes.Skip(step == null ? 2 : 3))
+                firstStep = EvaluateOperator(stepExpresssion);
+                if (firstStep.Type != AtomType.NUMBER)
+                    throw new EvaluatorException(node, "Invalid step type, expected NUMBER but got STRING.");
+            }
+
+
+            // Loop until the condition is false
+            while (firstStep == null || (float)firstStep.Value > 0 
+                ? (float)(EvaluateOperator(finalExpression).Value) > (float)_variables[variableKey].Value 
+                : (float)(EvaluateOperator(finalExpression).Value) < (float)_variables[variableKey].Value)
+            {
+                foreach (var n in nodes.Skip(stepExpresssion == null ? 2 : 3))
                 {
                     if (n.GetType() == typeof(Node))
                         Evaluate((Node)n);
@@ -178,43 +194,32 @@ namespace Interpreter_lib.Evaluator
                 }
 
                 // Evaluate the step
-                if (step != null)
+                if (stepExpresssion != null)
                 {
-                    Atom result = EvaluateOperator(step);
+                    Atom result = EvaluateOperator(stepExpresssion);
+                    if(result.Type != AtomType.NUMBER)
+                        throw new EvaluatorException(node, "Invalid step type, expected NUMBER but got STRING.");
+
                     // Get the value of the variable
-                    if (_variables.TryGetValue(variableKey, out Atom? value))
+                    if (value.Type == AtomType.NUMBER)
                     {
-                        if (value.Type == AtomType.NUMBER)
-                        {
-                            _variables[variableKey] = new Atom(AtomType.NUMBER, (float)value.Value + (float)result.Value);
-                        }
-                        else
-                        {
-                            throw new EvaluatorException(node, "Invalid variable type, expected NUMBER but got STRING.");
-                        }
+                        _variables[variableKey] = new Atom(AtomType.NUMBER, (float)_variables[variableKey].Value + (float)result.Value);
                     }
                     else
                     {
-                        throw new EvaluatorException(node, "Variable was used before declaration.");
+                        throw new EvaluatorException(node, "Invalid variable type, expected NUMBER but got STRING.");
                     }
                 }
                 else
                 {
                     // Get the value of the variable
-                    if (_variables.TryGetValue(variableKey, out Atom? value))
+                    if (value.Type == AtomType.NUMBER)
                     {
-                        if (value.Type == AtomType.NUMBER)
-                        {
-                            _variables[variableKey] = new Atom(AtomType.NUMBER, (float)value.Value + 1);
-                        }
-                        else
-                        {
-                            throw new EvaluatorException(node, "Invalid variable type, expected NUMBER but got STRING.");
-                        }
+                        _variables[variableKey] = new Atom(AtomType.NUMBER, (float)_variables[variableKey].Value + 1);
                     }
                     else
                     {
-                        throw new EvaluatorException(node, "Variable was used before declaration.");
+                        throw new EvaluatorException(node, "Invalid variable type, expected NUMBER but got STRING.");
                     }
                 }
             }
@@ -363,10 +368,8 @@ namespace Interpreter_lib.Evaluator
                 case ERule.EXPRESSION:
                     return EvaluateExpression(node);
                 default:
-                    break;
+                    throw new EvaluatorException(node, "Invalid operator.");
             }
-
-            throw new EvaluatorException(node, "Invalid operator.");
         }
 
         // EXPRESSION,
