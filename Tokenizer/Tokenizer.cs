@@ -363,17 +363,15 @@ namespace Interpreter_lib.Tokenizer
                     case '"':
                         _accumulator = string.Empty;
 
-                        do
-                        {
-                            Advance();
-                            _accumulator += _currentChar;
-                        } while (!"\"".Contains(Peek()) ||
-                                (
+                        while (!"\"".Contains(Peek()) || (
                                     _currentChar.ToString() + Peek() == "\\\"" ||
                                     Peek().ToString() + Peek(1) == "\\\"" ||
                                     Peek(-1) + _currentChar.ToString() == "\\\""
-                                )
-                        );
+                                ))
+                        {
+                            Advance();
+                            _accumulator += _currentChar;
+                        }
 
                         Advance();
 
