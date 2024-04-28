@@ -271,17 +271,20 @@ namespace Interpreter_lib.Evaluator
             List<ISyntaxNode> nodes = node.GetSyntaxNodes();
 
             // Evaluate each node and print the result
+            if (nodes.Count > 0)
+                Console.Write("\n");
+
             foreach (var n in nodes)
             {
                 Atom result = EvaluateOperator((Node)n);
 
                 if (result.Type == AtomType.NUMBER)
                 {
-                    Console.WriteLine((float)result.Value);
+                    Console.Write((float)result.Value);
                 }
                 else
                 {
-                    Console.WriteLine((string)result.Value);
+                    Console.Write((string)result.Value);
                 }
             }
         }
