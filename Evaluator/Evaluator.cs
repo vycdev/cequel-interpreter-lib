@@ -2,7 +2,9 @@
 using Interpreter_lib.Tokenizer;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,6 +31,7 @@ class Atom
 public class Evaluator
 {
     private static Dictionary<string, Atom> _variables = new Dictionary<string, Atom>();
+    public static List<string> Output { get; } = new List<string>();
 
     public void Evaluate(Node node)
     {
@@ -272,7 +275,7 @@ public class Evaluator
 
         // Evaluate each node and print the result
         if (nodes.Count > 0)
-            Console.Write("\n");
+            Write("\n");
 
         foreach (var n in nodes)
         {
@@ -280,11 +283,11 @@ public class Evaluator
 
             if (result.Type == AtomType.NUMBER)
             {
-                Console.Write((float)result.Value);
+                Write(((float)result.Value).ToString());
             }
             else
             {
-                Console.Write((string)result.Value);
+                Write((string)result.Value);
             }
         }
     }
@@ -561,6 +564,14 @@ public class Evaluator
         {
             throw new EvaluatorException(token, "Invalid token type when trying to obtain variable, expected IDENTIFIER, STRING or NUMBER.");
         }
+    }
+
+    private void Write(string text)
+    {
+        if (Debugger.IsAttached)
+            Console.Write(text);
+        else  
+            Output.Add(text);
     }
 
     #endregion
