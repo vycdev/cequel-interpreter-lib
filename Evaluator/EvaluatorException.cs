@@ -6,30 +6,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Interpreter_lib.Evaluator
+namespace Interpreter_lib.Evaluator;
+
+public class EvaluatorException(ISyntaxNode node, string? message) : Exception(BetterMessage(node, message))
 {
-    public class EvaluatorException : Exception
+    private static string BetterMessage(ISyntaxNode node, string? message)
     {
-        ISyntaxNode Node { get; }
+        if (!string.IsNullOrEmpty(message))
+            message = "\n" + message;
 
-        public EvaluatorException(ISyntaxNode node, string? message) : base(BetterMessage(node, message))
+        if(node.GetType() == typeof(Node))
         {
-            this.Node = node;
+            return $"Error at line {((Node)node).Line} in node {((Node)node)._rule}.{message}";
         }
-
-        private static string BetterMessage(ISyntaxNode node, string? message)
+        else
         {
-            if (!string.IsNullOrEmpty(message))
-                message = "\n" + message;
-
-            if(node.GetType() == typeof(Node))
-            {
-                return $"Error at line {((Node)node).Line} in node {((Node)node)._rule}.{message}";
-            }
-            else
-            {
-                return $"Error at line {((Token)node).Line} in token {((Token)node).Type} with value {((Token)node).Value}.{message}";
-            }
+            return $"Error at line {((Token)node).Line} in token {((Token)node).Type} with value {((Token)node).Value}.{message}";
         }
     }
 }

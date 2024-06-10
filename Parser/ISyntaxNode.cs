@@ -5,10 +5,9 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Interpreter_lib.Parser
+namespace Interpreter_lib.Parser;
+
+public interface ISyntaxNode : ICloneable
 {
-    public interface ISyntaxNode : ICloneable
-    {
-        public string Print();
-    }
+    public string Print();
 }

@@ -5,43 +5,35 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Interpreter_lib.Tokenizer
+namespace Interpreter_lib.Tokenizer;
+
+public class TokensLanguage
 {
-    public class TokensLanguage
+    public string READ { get; set; } = "read";
+    public string WRITE { get; set; } = "write";
+    public string IF { get; set; } = "if";
+    public string THEN { get; set; } = "then";
+    public string ELSE { get; set; } = "else";
+    public string WHILE { get; set; } = "while";
+    public string DO { get; set; } = "do";
+    public string REPEAT { get; set; } = "repeat";
+    public string UNTIL { get; set; } = "until";
+    public string FOR { get; set; } = "for";
+}
+
+public class Token(EToken type, string value, int line) : ISyntaxNode
+{
+    public EToken Type { get; private set; } = type;
+    public string Value { get; private set; } = value;
+    public int Line { get; private set; } = line;
+
+    public object Clone()
     {
-        public string READ { get; set; } = "read";
-        public string WRITE { get; set; } = "write";
-        public string IF { get; set; } = "if";
-        public string THEN { get; set; } = "then";
-        public string ELSE { get; set; } = "else";
-        public string WHILE { get; set; } = "while";
-        public string DO { get; set; } = "do";
-        public string REPEAT { get; set; } = "repeat";
-        public string UNTIL { get; set; } = "until";
-        public string FOR { get; set; } = "for";
+        return new Token(Type, Value, Line);
     }
 
-    public class Token : ISyntaxNode
+    public string Print()
     {
-        public EToken Type { get; private set; }
-        public string Value { get; private set; }
-        public int Line { get; private set; }
-
-        public Token(EToken type, string value, int line)
-        {
-            Type = type;
-            Value = value;
-            Line = line;
-        }
-
-        public object Clone()
-        {
-            return new Token(Type, Value, Line);
-        }
-
-        public string Print()
-        {
-            return $"{Type}: {Value} | Line: {Line}";
-        }
+        return $"{Type}: {Value} | Line: {Line}";
     }
 }
