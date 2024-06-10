@@ -10,28 +10,22 @@ using System.Threading.Tasks;
 
 namespace Interpreter_lib.Evaluator;
 
-enum AtomType
+public enum AtomType
 {
     NUMBER,
     STRING
 }
 
-class Atom
+public class Atom(AtomType type, object value)
 {
-    public AtomType Type;
-    public object Value;
-
-    public Atom(AtomType type, object value)
-    {
-        this.Type = type;
-        this.Value = value;
-    }
+    public AtomType Type = type;
+    public object Value = value;
 }
 
 public class Evaluator
 {
-    private static Dictionary<string, Atom> _variables = new Dictionary<string, Atom>();
-    public static List<string> Output { get; } = new List<string>();
+    public static Dictionary<string, Atom> Variables { get; } = [];
+    public static string Output { get; set; } = string.Empty;
 
     public void Evaluate(Node node)
     {
@@ -170,7 +164,7 @@ public class Evaluator
         string variableKey = EvaluateAssignment(assignment);
 
         // Get the value of the variable
-        if (!_variables.TryGetValue(variableKey, out Atom? value))
+        if (!Variables.TryGetValue(variableKey, out Atom? value))
             throw new EvaluatorException(node, "Variable was used before declaration.");
 
         // Evaluate the step if it exists
@@ -185,8 +179,8 @@ public class Evaluator
 
         // Loop until the condition is false
         while (firstStep == null || (float)firstStep.Value > 0 
-            ? (float)(EvaluateOperator(finalExpression).Value) > (float)_variables[variableKey].Value 
-            : (float)(EvaluateOperator(finalExpression).Value) < (float)_variables[variableKey].Value)
+            ? (float)(EvaluateOperator(finalExpression).Value) > (float)Variables[variableKey].Value 
+            : (float)(EvaluateOperator(finalExpression).Value) < (float)Variables[variableKey].Value)
         {
             foreach (var n in nodes.Skip(stepExpresssion == null ? 2 : 3))
             {
@@ -206,7 +200,7 @@ public class Evaluator
                 // Get the value of the variable
                 if (value.Type == AtomType.NUMBER)
                 {
-                    _variables[variableKey] = new Atom(AtomType.NUMBER, (float)_variables[variableKey].Value + (float)result.Value);
+                    Variables[variableKey] = new Atom(AtomType.NUMBER, (float)Variables[variableKey].Value + (float)result.Value);
                 }
                 else
                 {
@@ -218,7 +212,7 @@ public class Evaluator
                 // Get the value of the variable
                 if (value.Type == AtomType.NUMBER)
                 {
-                    _variables[variableKey] = new Atom(AtomType.NUMBER, (float)_variables[variableKey].Value + 1);
+                    Variables[variableKey] = new Atom(AtomType.NUMBER, (float)Variables[variableKey].Value + 1);
                 }
                 else
                 {
@@ -314,7 +308,7 @@ public class Evaluator
         Atom result = EvaluateOperator(expression);
 
         // Add the variable to the dictionary
-        _variables[variable.Value] = result;
+        Variables[variable.Value] = result;
     
         return variable.Value;
     }
@@ -543,7 +537,7 @@ public class Evaluator
 
         if (token.Type == EToken.IDENTIFIER)
         {
-            if (_variables.TryGetValue(token.Value, out Atom? value))
+            if (Variables.TryGetValue(token.Value, out Atom? value))
             {
                 return value;
             }
@@ -570,8 +564,8 @@ public class Evaluator
     {
         if (Debugger.IsAttached)
             Console.Write(text);
-        else  
-            Output.Add(text);
+        
+        Output += text;
     }
 
     #endregion
