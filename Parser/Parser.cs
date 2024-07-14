@@ -283,7 +283,7 @@ public class Parser
         node = rule.Evaluate(_tokens, _currentTokenIndex);
         _AST = node;
 
-        if(_AST.IsEmpty)
+        if (_AST.IsEmpty)
             throw new ParserException(rule, "Rule has matched less than once.");
     }
 

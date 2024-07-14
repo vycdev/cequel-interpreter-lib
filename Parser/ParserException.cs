@@ -1,12 +1,4 @@
-﻿using Interpreter_lib.Tokenizer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Interpreter_lib.Parser;
+﻿namespace Interpreter_lib.Parser;
 
 public class ParserException(Rule rule, string? message) : Exception(BetterMessage(rule, message))
 {

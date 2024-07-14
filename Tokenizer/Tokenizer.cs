@@ -98,7 +98,7 @@ public class Tokenizer
         // Add dedent tokens at the end of the file if needed
         if (indentLevel > 0)
         {
-            if(newTokens.Last().Type == EToken.END_OF_FILE)
+            if (newTokens.Last().Type == EToken.END_OF_FILE)
             {
                 newTokens.RemoveAt(newTokens.Count - 1);
                 newTokens.Add(new Token(EToken.END_OF_LINE, ";", newTokens.Last().Line));
@@ -114,19 +114,22 @@ public class Tokenizer
         }
         else
         {
-            if (newTokens.Last().Type == EToken.END_OF_FILE && 
-                newTokens[newTokens.Count - 2].Type != EToken.END_OF_LINE)
+            if (newTokens.Count > 0 && newTokens.Last().Type == EToken.END_OF_FILE &&
+                newTokens[^2].Type != EToken.END_OF_LINE)
             {
                 newTokens.RemoveAt(newTokens.Count - 1);
                 newTokens.Add(new Token(EToken.END_OF_LINE, ";", newTokens.Last().Line));
                 newTokens.Add(new Token(EToken.END_OF_FILE, "\\0", newTokens.Last().Line));
-            } 
-            else if (newTokens.Last().Type == EToken.END_OF_LINE)
+            }
+            else if (newTokens.Count > 0 && newTokens.Last().Type == EToken.END_OF_LINE)
             {
                 newTokens.Add(new Token(EToken.END_OF_FILE, "\\0", newTokens.Last().Line));
             }
+            else if (newTokens.Count == 0)
+            {
+                newTokens.Add(new Token(EToken.END_OF_FILE, "\\0", 1));
+            }
         }
-
 
         Tokens = newTokens.Where(t => t.Type != EToken.TAB).ToList();
     }
