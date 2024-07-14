@@ -16,13 +16,15 @@ public class Atom(AtomType type, object value)
     public object Value = value;
 }
 
-public class Evaluator
+public class Evaluator(DateTime? StartDateTime = null, TimeSpan? TimeSpanLimit = null)
 {
-    public static Dictionary<string, Atom> Variables { get; } = [];
-    public static string Output { get; set; } = string.Empty;
+    public Dictionary<string, Atom> Variables { get; } = [];
+    public string Output { get; set; } = string.Empty;
 
     public void Evaluate(Node node)
     {
+        CheckTimeLimit(node);
+
         switch (node._rule)
         {
             case ERule.ROOT:
@@ -60,6 +62,8 @@ public class Evaluator
     // ROOT 
     public void EvaluateRoot(Node node)
     {
+        CheckTimeLimit(node);
+
         foreach (var n in node.GetSyntaxNodes())
         {
             if (n.GetType() == typeof(Node))
@@ -76,13 +80,15 @@ public class Evaluator
     {
         // Get all nodes
         List<ISyntaxNode> nodes = node.GetSyntaxNodes();
-        
+
         // Get the first node
         Node condition = (Node)nodes[0];
 
         // Loop until the condition is false
         while ((float)(EvaluateOperator(condition).Value) == 1)
         {
+            CheckTimeLimit(node);
+
             foreach (var n in nodes.Skip(1))
             {
                 if (n.GetType() == typeof(Node))
@@ -105,6 +111,8 @@ public class Evaluator
         // Loop until the condition is false
         do
         {
+            CheckTimeLimit(node);
+
             foreach (var n in nodes.Take(nodes.Count - 1))
             {
                 if (n.GetType() == typeof(Node))
@@ -127,6 +135,8 @@ public class Evaluator
         // Loop until condition is true
         do
         {
+            CheckTimeLimit(node);
+
             foreach (ISyntaxNode? n in nodes.Take(nodes.Count - 1))
             {
                 if (n.GetType() == typeof(Node))
@@ -162,7 +172,7 @@ public class Evaluator
             throw new EvaluatorException(node, "Variable was used before declaration.");
 
         // Evaluate the step if it exists
-        Atom? firstStep = null; 
+        Atom? firstStep = null;
         if (stepExpresssion != null)
         {
             firstStep = EvaluateOperator(stepExpresssion);
@@ -172,10 +182,12 @@ public class Evaluator
 
 
         // Loop until the condition is false
-        while (firstStep == null || (float)firstStep.Value > 0 
-            ? (float)(EvaluateOperator(finalExpression).Value) > (float)Variables[variableKey].Value 
+        while (firstStep == null || (float)firstStep.Value > 0
+            ? (float)(EvaluateOperator(finalExpression).Value) > (float)Variables[variableKey].Value
             : (float)(EvaluateOperator(finalExpression).Value) < (float)Variables[variableKey].Value)
         {
+            CheckTimeLimit(node);
+
             foreach (var n in nodes.Skip(stepExpresssion == null ? 2 : 3))
             {
                 if (n.GetType() == typeof(Node))
@@ -188,7 +200,7 @@ public class Evaluator
             if (stepExpresssion != null)
             {
                 Atom result = EvaluateOperator(stepExpresssion);
-                if(result.Type != AtomType.NUMBER)
+                if (result.Type != AtomType.NUMBER)
                     throw new EvaluatorException(node, "Invalid step type, expected NUMBER but got STRING.");
 
                 // Get the value of the variable
@@ -276,7 +288,7 @@ public class Evaluator
     // READ,
     void EvaluateRead(Node node)
     {
-
+        throw new EvaluatorException(node, "Read instruction has not been implemented yet.");
     }
 
     // ASSIGNMENT,
@@ -296,12 +308,14 @@ public class Evaluator
 
         // Add the variable to the dictionary
         Variables[variable.Value] = result;
-    
+
         return variable.Value;
     }
 
     Atom EvaluateOperator(Node node)
     {
+        CheckTimeLimit(node);
+
         return node._rule switch
         {
             ERule.LOGICAL_OR => EvaluateBinaryOperator(node, (x, y) => (x == 1 || y == 1) ? 1 : 0),
@@ -375,15 +389,15 @@ public class Evaluator
                 result = EvaluateOperator((Node)n[i]);
 
             if (result.Type == AtomType.NUMBER)
-                if(acc.Type == AtomType.NUMBER)
+                if (acc.Type == AtomType.NUMBER)
                     acc = new Atom(AtomType.NUMBER, (float)acc.Value + (float)result.Value);
-                else 
+                else
                     acc = new Atom(AtomType.STRING, (string)acc.Value + (float)result.Value);
             else
-                if(acc.Type == AtomType.NUMBER)
-                    acc = new Atom(AtomType.STRING, (float)acc.Value + (string)result.Value);
-                else
-                    acc = new Atom(AtomType.STRING, (string)acc.Value + (string)result.Value);
+                if (acc.Type == AtomType.NUMBER)
+                acc = new Atom(AtomType.STRING, (float)acc.Value + (string)result.Value);
+            else
+                acc = new Atom(AtomType.STRING, (string)acc.Value + (string)result.Value);
         }
 
         return acc;
@@ -393,11 +407,11 @@ public class Evaluator
     Atom EvaluatePower(Node node)
     {
         List<ISyntaxNode> n = node.GetSyntaxNodes();
-        if(n.Count < 2)
+        if (n.Count < 2)
             throw new EvaluatorException(node, $"Invalid number of arguments for operator {node._rule}.");
 
         Atom result;
-        Atom acc; 
+        Atom acc;
 
         // Get last element
         if (n[^1].GetType() == typeof(Token))
@@ -420,7 +434,7 @@ public class Evaluator
 
             if (result.Type != AtomType.NUMBER)
                 throw new EvaluatorException(n[i], $"Invalid variable type, expected NUMBER but got {result.Type}.");
-            
+
             acc = new Atom(AtomType.NUMBER, (float)Math.Pow((float)result.Value, (float)acc.Value));
         }
 
@@ -467,9 +481,9 @@ public class Evaluator
     private Atom EvaluateUnaryOperator(Node node, Func<float, float> action)
     {
         List<ISyntaxNode> nodes = node.GetSyntaxNodes();
-        if(nodes.Count != 1)
+        if (nodes.Count != 1)
             throw new EvaluatorException(node, $"Invalid number of arguments for operator {node._rule}.");
-        
+
         ISyntaxNode n = nodes[0];
 
         Atom result;
@@ -489,7 +503,7 @@ public class Evaluator
 
     #region HELPER FUNCTIONS
 
-    private static Atom GetAtom(ISyntaxNode node)
+    private Atom GetAtom(ISyntaxNode node)
     {
         if (node.GetType() == typeof(Node))
             throw new EvaluatorException(node, "Cannot get variable of type Node.");
@@ -521,12 +535,21 @@ public class Evaluator
         }
     }
 
-    private static void Write(string text)
+    private void Write(string text)
     {
         if (Debugger.IsAttached)
             Console.Write(text);
-        
+
         Output += text;
+    }
+
+    private void CheckTimeLimit(ISyntaxNode node)
+    {
+        if (StartDateTime == null || TimeSpanLimit == null)
+            return;
+
+        if (DateTime.Now - StartDateTime > TimeSpanLimit)
+            throw new EvaluatorException(node, $"Time limit of {TimeSpanLimit} exceeded.");
     }
 
     #endregion
