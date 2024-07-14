@@ -18,7 +18,7 @@ public class Atom(AtomType type, object value)
 
 public class Evaluator(DateTime? StartDateTime = null, TimeSpan? TimeSpanLimit = null)
 {
-    public Dictionary<string, Atom> Variables { get; } = [];
+    public Dictionary<string, Atom> Variables { get; set; } = [];
     public string Output { get; set; } = string.Empty;
 
     public void Evaluate(Node node)
