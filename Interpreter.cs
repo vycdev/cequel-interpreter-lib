@@ -1,9 +1,8 @@
-﻿namespace Interpreter_lib
+﻿namespace Interpreter_lib;
+
+public class Interpreter
 {
-    public class Interpreter
-    {
-        // tokenize
-        // parse 
-        // interpret
-    }
+    // tokenize
+    // parse 
+    // interpret
 }
